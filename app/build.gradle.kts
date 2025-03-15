@@ -1,10 +1,11 @@
-import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.plugin.serialization")
+
 }
 
 android {
@@ -69,6 +70,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.appauth)
     implementation(libs.material3)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,4 +79,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.retrofit)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor) // Optional, for request/response logging
+    implementation(libs.converter.gson) // or latest version
+    implementation (libs.gson) // or latest version
+
 }
