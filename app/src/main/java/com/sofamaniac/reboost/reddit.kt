@@ -80,10 +80,31 @@ data class PostData(
     val title: String = "",
     val name: String = "",
     val id: String = "",
+    val url: String = "",
+    val preview: PostPreview = PostPreview(),
 //    val link_flair_richtext: List<String> = emptyList<String>(),
     val subreddit_name_prefixed: String = "",
     val hidden: Boolean = false,
-    val pwls: String? = null
+    val pwls: String? = null,
+    val post_hint: String? = null,
+)
+
+@Serializable
+data class PostPreview(
+    val images: List<PostImage> = emptyList()
+)
+
+@Serializable
+data class PostImage(
+    val source: PostImageSource,
+    val resolutions: List<PostImageSource>
+)
+
+@Serializable
+data class PostImageSource(
+    val url: String = "",
+    val width: Int = 0,
+    val height: Int = 0
 )
 
 private const val API_LIMIT = 100

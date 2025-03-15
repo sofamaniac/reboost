@@ -8,42 +8,44 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
@@ -52,7 +54,6 @@ import retrofit2.Response
 
 
 class MainActivity : ComponentActivity() {
-
 
     private lateinit var authService: AuthorizationService
     private lateinit var authRequest: AuthorizationRequest
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
     )
 
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         authService = AuthorizationService(this)
@@ -110,13 +112,40 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 MaterialTheme {
-                    MainScreen(
-                        authManager = authManager,
-                        onLoginClicked = {
-                            val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-                            launcher.launch(authIntent)
-                        },
+                    val currentScreen = remember { mutableStateOf("home") }
+                    val navController = rememberNavController()
+                    val scrollBehavior =
+                        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+                    Scaffold(
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                        topBar = { MakeTopBar(currentScreen.value, scrollBehavior) },
+                        bottomBar = {
+                            Row {
+                                Button(onClick = {
+                                    currentScreen.value = "home"
+                                    navController.navigate("home")
+                                }) { Text("Home") }
+                                Button(onClick = {
+                                    currentScreen.value = "saved"
+                                    navController.navigate("saved")
+
+                                }) { Text("Saved") }
+                            }
+                        }
                     )
+                    { innerPadding ->
+                        MainScreen(
+                            authManager,
+                            navController,
+                            onLoginClicked = {
+                                // Create and launch the auth intent here
+                                val authIntent =
+                                    authService.getAuthorizationRequestIntent(authRequest)
+                                launcher.launch(authIntent)
+                            },
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
 
@@ -156,88 +185,63 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-abstract class Paginator<Type : Thing<Any>>(context: Context) : ViewModel() {
-    protected val apiService = RedditAPI.getApiService(context)
-    protected lateinit var username: String
-    protected val _posts = mutableStateListOf<Type>()
-    val posts: SnapshotStateList<Type> = _posts
-    var after: String? = null
-    var count: Int = 0
-
-    init {
-        firstPage()
-    }
-
-    abstract suspend fun requestPage(): Response<Listing<Type>>
-
-    suspend fun handlePage() {
-        val response = requestPage()
-        if (response.isSuccessful) {
-            val listing = response.body()
-            listing?.let {
-                _posts.addAll(it.data.children)
-                count += it.size()
-                after = it.after()
-            }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MakeTopBar(title: String, scrollBehavior: TopAppBarScrollBehavior? = null) {
+    TopAppBar(
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.primary,
+        ),
+        title = {
+            Text(title)
         }
+    )
 
-    }
-
-    fun firstPage() {
-        viewModelScope.launch {
-            if (!::username.isInitialized) {
-                username = apiService.getIdentity().body()?.username!!
-            }
-            handlePage()
-        }
-    }
-
-    suspend fun loadPage() {
-        if (after != null) {
-            handlePage()
-        }
-    }
-
-    @Composable
-    abstract fun View(modifier: Modifier = Modifier)
 }
 
-abstract class PostViewer(context: Context) : Paginator<Post>(context) {
 
-    @Composable
-    override fun View(modifier: Modifier) {
-        val posts: List<Post> = posts.toList()
-        val listState = rememberLazyListState()
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(posts) { post ->
-                Text(post.data.title, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                HorizontalDivider(thickness = 1.dp)
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-        }
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun MyImage(imageUrl: String, modifier: Modifier = Modifier) {
 
-        LaunchedEffect(listState) {
-            snapshotFlow { listState.firstVisibleItemIndex }.collect {
-                if (it >= posts.size - 1) {
-                    loadPage()
-                }
-            }
-        }
+    GlideImage(
+        model = imageUrl,
+        contentDescription = "Image from URL",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Fit
+    ) {
+        it.placeholder(R.drawable.loading_image) // Default placeholder
+        it.error(R.drawable.loading_image) // Default error
+        it.load(imageUrl)
     }
 }
 
-class SavedViewer(context: Context): PostViewer(context) {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FullPostViewer(title: String, viewer: PostViewer, modifier: Modifier = Modifier) {
+    viewer.View()
+}
+
+@Composable
+fun OnePostViewer(post: Post, modifier: Modifier = Modifier) {
+    val json = Json {
+        prettyPrint = true
+    }
+    Column(modifier = Modifier.padding(8.dp)) {
+        PostItem(post, currentPost = remember { mutableStateOf(null) })
+        Text(json.encodeToString(Post.serializer(), post), softWrap = true)
+    }
+}
+
+class SavedViewer(context: Context) : PostViewer(context) {
     override suspend fun requestPage(): Response<Listing<Post>> {
         return apiService.getSavedPosts(username, after, count)
     }
 }
 
-class HomeViewer(context: Context): PostViewer(context) {
+class HomeViewer(context: Context) : PostViewer(context) {
     override suspend fun requestPage(): Response<Listing<Post>> {
         return apiService.getHotPosts(after, count)
     }
@@ -248,6 +252,7 @@ class HomeViewer(context: Context): PostViewer(context) {
 @Composable
 fun MainScreen(
     authManager: AuthManager,
+    navController: NavHostController,
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -265,25 +270,16 @@ fun MainScreen(
                     onLoginClicked()
                     scope.launch { drawerState.close() }
                 },
-                modifier
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             )
         },
     ) {
-        Scaffold { paddingValues ->
-            Column(
-                modifier = Modifier.padding(paddingValues)
-            ) {
-                if (authManager.loggedIn) {
-                    viewer.View(modifier)
-                } else {
-                    Text(
-                        "Please login",
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    LoginButton(onClick = { onLoginClicked() })
-                }
-            }
+        Column {
+            NavigationGraph(
+                navController,
+            )
         }
     }
 }
@@ -302,9 +298,10 @@ fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 fun DrawerContent(authManager: AuthManager, onClick: () -> Unit, modifier: Modifier = Modifier) {
     //Only show the login button if the user is not logged in
     val context = LocalContext.current
-    if (!authManager.loggedIn) {
+    if (authManager.loggedIn) {
+        Spacer(modifier = Modifier.padding(16.dp))
         LoginButton(
-            modifier = Modifier.padding(16.dp),
+            modifier = modifier.padding(16.dp),
             onClick = onClick
         )
     } else {
@@ -317,8 +314,35 @@ fun DrawerContent(authManager: AuthManager, onClick: () -> Unit, modifier: Modif
         }
         Text(
             "Hello $username!",
-            modifier = Modifier.padding(16.dp),
+            modifier = modifier.padding(16.dp),
             color = MaterialTheme.colorScheme.primary
         )
     }
+}
+
+@Composable
+fun NavigationGraph(navController: NavHostController, modifier: Modifier = Modifier) {
+    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
+        composable("home") {
+            HomeScreen()
+        }
+        composable("saved") {
+            SavedScreen()
+        }
+    }
+
+}
+
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val viewer = HomeViewer(context)
+    FullPostViewer("Home", viewer)
+}
+
+@Composable
+fun SavedScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val viewer = SavedViewer(context)
+    FullPostViewer("Saved", viewer)
 }

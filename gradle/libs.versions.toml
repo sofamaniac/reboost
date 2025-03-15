@@ -1,7 +1,10 @@
 [versions]
 agp = "8.9.0"
 appauth = "0.11.1"
+coilCompose = "2.7.0"
+compose = "1.0.0-alpha.1"
 converterGson = "2.9.0"
+glide = "4.16.0"
 gson = "2.10.1"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
@@ -13,6 +16,7 @@ activityCompose = "1.10.1"
 composeBom = "2024.09.00"
 loggingInterceptor = "4.11.0"
 material3 = "1.3.1"
+navigationCompose = "2.8.9"
 okhttp = "4.12.0"
 retrofit = "2.9.0"
 kotlinxSerializationJson = "1.6.0"
@@ -20,9 +24,14 @@ retrofit2KotlinxSerializationConverter = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+compose = { module = "com.github.bumptech.glide:compose", version.ref = "compose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterGson" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

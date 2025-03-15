@@ -70,8 +70,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.appauth)
     implementation(libs.material3)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,10 +79,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor) // Optional, for request/response logging
-    implementation(libs.converter.gson) // or latest version
-    implementation (libs.gson) // or latest version
+    // Json serialization
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
+    implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.coil.compose)
+
+    implementation(libs.glide) //check for latest version
+    implementation(libs.compose) // check for latest version
+    annotationProcessor(libs.compiler) //check for latest version
 
 }
