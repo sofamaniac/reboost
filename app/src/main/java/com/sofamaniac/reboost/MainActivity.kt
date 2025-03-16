@@ -33,6 +33,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,67 +50,33 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.auth.BasicAuthClient
+import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
-import net.openid.appauth.AuthorizationService
 import retrofit2.Response
 
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var authService: AuthorizationService
-    private lateinit var authRequest: AuthorizationRequest
-    private lateinit var authManager: AuthManager
-    private val authConfig = AuthConfig(
-        authorizationEndpoint = "https://ssl.reddit.com/api/v1/authorize",
-        tokenEndpoint = "https://ssl.reddit.com/api/v1/access_token",
-        redirectUri = "com.sofamaniac.reboost://callback",
-        clientId = BuildConfig.REDDIT_CLIENT_ID,
-        scopes = listOf(
-            "identity",
-            "edit",
-            "flair",
-            "history",
-            "modconfig",
-            "modflair",
-            "modlog",
-            "modposts",
-            "modwiki",
-            "mysubreddits",
-            "privatemessages",
-            "read",
-            "report",
-            "save",
-            "submit",
-            "subscribe",
-            "vote",
-            "wikiedit",
-            "wikiread"
-        )
-    )
-
-
-    @OptIn(ExperimentalMaterial3Api::class)
+    private lateinit var authState: MutableState<Manager>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        authService = AuthorizationService(this)
-        authRequest = createAuthorizationRequest(authConfig)
-        authManager = AuthManager(this)
-        Log.d("MainActivity", "onCreate: ${authManager.getCurrent().jsonSerializeString()}")
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
+                authState = remember { mutableStateOf(Manager(this)) }
                 val launcher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
                 ) {
                     if (it.resultCode == RESULT_OK) {
                         val resp = AuthorizationResponse.fromIntent(it.data!!)
                         val error = AuthorizationException.fromIntent(it.data)
-                        authManager.update(resp, error)
+                        authState.value.authManager.update(resp, error)
 
                         handleAuthorizationResponse(resp, error, { })
                         // Handle the authorization response
@@ -120,12 +87,12 @@ class MainActivity : ComponentActivity() {
                 MaterialTheme {
                     val navController = rememberNavController()
                     MainScreen(
-                        authManager,
-                        navController,
+                        authState.value,
+                        navController = navController,
                         onLoginClicked = {
                             // Create and launch the auth intent here
                             val authIntent =
-                                authService.getAuthorizationRequestIntent(authRequest)
+                                authState.value.authService.getAuthorizationRequestIntent(authState.value.authRequest)
                             launcher.launch(authIntent)
                         },
                     )
@@ -136,7 +103,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        authService.dispose()
+        authState.value.dispose()
     }
 
     private fun handleAuthorizationResponse(
@@ -145,17 +112,17 @@ class MainActivity : ComponentActivity() {
         onLoginSuccess: () -> Unit
     ) {
         if (resp != null) {
-            val basicAuth = BasicAuthClient(authConfig.clientId)
+            val basicAuth = BasicAuthClient(authState.value.authConfig.clientId)
             val tokenExchangeRequest = resp.createTokenExchangeRequest()
             Log.d("MainActivity", "Token request: ${tokenExchangeRequest.jsonSerializeString()}")
-            Log.d("MainActivity", "redirect uri: ${authConfig.redirectUri}")
-            authService.performTokenRequest(
+            Log.d("MainActivity", "redirect uri: ${authState.value.authConfig.redirectUri}")
+            authState.value.authService.performTokenRequest(
                 tokenExchangeRequest,
                 basicAuth
             ) { tokenResponse, tokenException ->
                 if (tokenResponse != null) {
-                    authManager.update(tokenResponse, tokenException)
-                    Log.d("MainActivity", "onCreate: ${authManager.loggedIn}")
+                    authState.value.authManager.update(tokenResponse, tokenException)
+                    Log.d("MainActivity", "onCreate: ${authState.value.authManager.loggedIn}")
                     onLoginSuccess()
                 } else {
                     Log.d("MainActivity", "token exception: ${tokenException.toString()}")
@@ -245,7 +212,7 @@ class HomeViewer(context: Context) : PostViewer(context) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    authManager: AuthManager,
+    authState: Manager,
     navController: NavHostController,
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -257,7 +224,7 @@ fun MainScreen(
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(
-                authManager,
+                authState.authManager,
                 onClick = {
                     onLoginClicked()
                     scope.launch { drawerState.close() }
@@ -299,7 +266,7 @@ fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 fun DrawerContent(
-    authManager: AuthManager,
+    authManager: StoreManager,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

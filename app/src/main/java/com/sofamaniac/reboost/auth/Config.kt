@@ -1,10 +1,8 @@
-package com.sofamaniac.reboost
+package com.sofamaniac.reboost.auth
 
 import android.util.Base64
 import androidx.core.net.toUri
-import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationRequest
-import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ClientAuthentication
 import net.openid.appauth.ResponseTypeValues

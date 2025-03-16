@@ -3,6 +3,7 @@ package com.sofamaniac.reboost
 import android.content.Context
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.sofamaniac.reboost.auth.StoreManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -171,7 +172,7 @@ object RedditAPI {
 }
 
 class AuthInterceptor(context: Context) : Interceptor {
-    private val authManager = AuthManager(context)
+    private val authManager = StoreManager(context)
 
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val requestBuilder = chain.request().newBuilder()

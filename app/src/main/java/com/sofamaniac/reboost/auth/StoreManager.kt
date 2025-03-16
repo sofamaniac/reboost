@@ -1,16 +1,19 @@
-package com.sofamaniac.reboost
+package com.sofamaniac.reboost.auth
 
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import net.openid.appauth.AuthState
 import androidx.core.content.edit
+import com.sofamaniac.reboost.BuildConfig
 import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
 import net.openid.appauth.TokenResponse
 
 
-class AuthManager(context: Context) {
+class StoreManager(context: Context) {
     private val TAG = "AuthManager"
     private val STORE_NAME = "AuthState"
     private val STORE_KEY = "state"
