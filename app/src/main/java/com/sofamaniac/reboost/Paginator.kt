@@ -4,13 +4,18 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -29,10 +34,12 @@ import retrofit2.Response
 abstract class Paginator<Type : Thing<Any>>(context: Context) : ViewModel() {
     protected val apiService = RedditAPI.getApiService(context)
     protected lateinit var username: String
-    protected val _posts = mutableStateListOf<Type>()
+    private val _posts = mutableStateListOf<Type>()
     val posts: List<Type> get() = _posts
     var after: String? = null
     var count: Int = 0
+    private val _isLoading = mutableStateOf(false)
+    val isLoading: Boolean get() = _isLoading.value
 
     init {
         firstPage()
@@ -41,6 +48,7 @@ abstract class Paginator<Type : Thing<Any>>(context: Context) : ViewModel() {
     abstract suspend fun requestPage(): Response<Listing<Type>>
 
     suspend fun handlePage() {
+        _isLoading.value = true
         val response = requestPage()
         if (response.isSuccessful) {
             val listing = response.body()
@@ -50,6 +58,7 @@ abstract class Paginator<Type : Thing<Any>>(context: Context) : ViewModel() {
                 after = it.after()
             }
         }
+        _isLoading.value = false
 
     }
 
@@ -95,11 +104,11 @@ abstract class PostViewer(context: Context) : Paginator<Post>(context) {
     override fun View(modifier: Modifier) {
         val posts: List<Post> = posts.toList()
         val listState = rememberLazyListState()
-        var currentPost: MutableState<Post?> = remember { mutableStateOf(null) }
+        val currentPost: MutableState<Post?> = remember { mutableStateOf(null) }
         if (currentPost.value == null) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                modifier = Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(posts) { post ->
@@ -109,6 +118,18 @@ abstract class PostViewer(context: Context) : Paginator<Post>(context) {
                 // Use a LazyList item to trigger pagination
                 item {
                     PaginationTrigger(listState, posts.size)
+                }
+                if (isLoading) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
             }
         } else {

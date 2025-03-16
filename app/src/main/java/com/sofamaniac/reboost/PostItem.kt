@@ -12,8 +12,51 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
+
+@Composable
+fun PostHeader(post: Post, modifier: Modifier = Modifier) {
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+        // TODO add subreddit icon
+        // TODO make subreddit clickable
+        Text(text = post.data.subreddit, style = MaterialTheme.typography.bodySmall)
+        Text(text = " · ", style = MaterialTheme.typography.bodySmall)
+        Text(text = post.data.author_fullname, style = MaterialTheme.typography.bodySmall)
+        Text(text = " · ", style = MaterialTheme.typography.bodySmall)
+        // TODO: add website
+        // TODO: add date
+        //Text(text = post.data., style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+fun PostBody(post: Post, modifier: Modifier = Modifier) {
+    when (post.data.post_hint ?: "") {
+        "image" -> {
+            MyImage(post.data.url)
+        }
+        "link" -> {
+            Text(post.data.url, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        else -> {
+            Text(post.data.selftext, style = MaterialTheme.typography.bodyMedium, maxLines = 6, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+fun BottomRow(post: Post, modifier: Modifier = Modifier) {
+    Row {
+        Button(onClick = { /* TODO: Upvote */ }) {
+            Text("Up")
+        }
+        Button(onClick = { /* TODO: Downvote */ }) {
+            Text("Down")
+        }
+    }
+}
 
 @Composable
 fun PostItem(post: Post, modifier: Modifier = Modifier, currentPost: MutableState<Post?>) {
@@ -23,42 +66,10 @@ fun PostItem(post: Post, modifier: Modifier = Modifier, currentPost: MutableStat
             .padding(8.dp), // Add some padding around the post
         verticalArrangement = Arrangement.spacedBy(8.dp) // Space between title, content, buttons
     ) {
-
-        Text(
-            text = post.data.title,
-            style = MaterialTheme.typography.headlineSmall, // Adjust text style
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = { currentPost.value = post })
-        )
-
-        var isShown = false
-        when (post.data.post_hint ?: "") {
-            "image" -> {
-                MyImage(post.data.url)
-                isShown = true
-            }
-            "link" -> {
-                Text(post.data.url)
-                isShown = true
-            }
-            else -> {
-                Text(post.data.selftext)
-                isShown = true
-            }
-        }
-
-        // Voting Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between the buttons
-        ) {
-            Button(onClick = { /* TODO: Upvote */ }) {
-                Text("Up")
-            }
-            Button(onClick = { /* TODO: Downvote */ }) {
-                Text("Down")
-            }
-        }
+        PostHeader(post)
+        Text(post.data.title, style = MaterialTheme.typography.titleMedium)
+        // TODO add upvote count and comment count
+        PostBody(post)
+        BottomRow(post)
     }
 }

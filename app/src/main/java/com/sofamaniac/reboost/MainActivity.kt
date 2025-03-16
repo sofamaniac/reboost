@@ -12,11 +12,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -112,43 +118,19 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 MaterialTheme {
-                    val currentScreen = remember { mutableStateOf("home") }
                     val navController = rememberNavController()
-                    val scrollBehavior =
-                        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-                    Scaffold(
-                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                        topBar = { MakeTopBar(currentScreen.value, scrollBehavior) },
-                        bottomBar = {
-                            Row {
-                                Button(onClick = {
-                                    currentScreen.value = "home"
-                                    navController.navigate("home")
-                                }) { Text("Home") }
-                                Button(onClick = {
-                                    currentScreen.value = "saved"
-                                    navController.navigate("saved")
-
-                                }) { Text("Saved") }
-                            }
-                        }
+                    MainScreen(
+                        authManager,
+                        navController,
+                        onLoginClicked = {
+                            // Create and launch the auth intent here
+                            val authIntent =
+                                authService.getAuthorizationRequestIntent(authRequest)
+                            launcher.launch(authIntent)
+                        },
                     )
-                    { innerPadding ->
-                        MainScreen(
-                            authManager,
-                            navController,
-                            onLoginClicked = {
-                                // Create and launch the auth intent here
-                                val authIntent =
-                                    authService.getAuthorizationRequestIntent(authRequest)
-                                launcher.launch(authIntent)
-                            },
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                    }
                 }
             }
-
         }
     }
 
@@ -201,11 +183,24 @@ fun MakeTopBar(title: String, scrollBehavior: TopAppBarScrollBehavior? = null) {
 
 }
 
+@Composable
+fun BottomBar() {
+    BottomAppBar {
+        Row {
+            Button(onClick = { /*TODO*/ }) {
+                Text("Home")
+            }
+            Button(onClick = { /*TODO*/ }) {
+                Text("Saved")
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MyImage(imageUrl: String, modifier: Modifier = Modifier) {
-
     GlideImage(
         model = imageUrl,
         contentDescription = "Image from URL",
@@ -218,7 +213,6 @@ fun MyImage(imageUrl: String, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullPostViewer(title: String, viewer: PostViewer, modifier: Modifier = Modifier) {
     viewer.View()
@@ -257,8 +251,6 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val viewer = HomeViewer(context)
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     ModalNavigationDrawer(
@@ -270,16 +262,27 @@ fun MainScreen(
                     onLoginClicked()
                     scope.launch { drawerState.close() }
                 },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
             )
         },
     ) {
-        Column {
-            NavigationGraph(
-                navController,
+        Column(modifier) {
+            val currentScreen = remember { mutableStateOf("home") }
+            val scrollBehavior =
+                TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+            Scaffold(
+                modifier = Modifier
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                topBar = { MakeTopBar(currentScreen.value, scrollBehavior) },
+                bottomBar = {
+                    BottomBar()
+                }
             )
+            { innerPadding ->
+                NavigationGraph(
+                    navController,
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
         }
     }
 }
@@ -295,28 +298,42 @@ fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DrawerContent(authManager: AuthManager, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    //Only show the login button if the user is not logged in
-    val context = LocalContext.current
-    if (authManager.loggedIn) {
-        Spacer(modifier = Modifier.padding(16.dp))
-        LoginButton(
-            modifier = modifier.padding(16.dp),
-            onClick = onClick
-        )
-    } else {
-        var username by remember { mutableStateOf("Anonymous") }
-        if (username == "Anonymous") {
-            LaunchedEffect(username) {
-                username =
-                    RedditAPI.getApiService(context).getIdentity().body()?.username ?: "Anonymous"
+fun DrawerContent(
+    authManager: AuthManager,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ModalDrawerSheet {
+        Column(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState())
+        ) {
+            val context = LocalContext.current
+            if (!authManager.loggedIn) {
+                Spacer(modifier = Modifier.padding(16.dp))
+                LoginButton(
+                    modifier = modifier.padding(16.dp),
+                    onClick = onClick
+                )
+            } else {
+                var username by remember { mutableStateOf("Anonymous") }
+                if (username == "Anonymous") {
+                    LaunchedEffect(username) {
+                        username =
+                            RedditAPI.getApiService(context).getIdentity().body()?.username
+                                ?: "Anonymous"
+                    }
+                }
+                Text(
+                    "Hello $username!",
+                    modifier = modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+
         }
-        Text(
-            "Hello $username!",
-            modifier = modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.primary
-        )
     }
 }
 

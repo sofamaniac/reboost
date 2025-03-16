@@ -23,6 +23,7 @@ val loggingInterceptor = HttpLoggingInterceptor().apply {
     level = HttpLoggingInterceptor.Level.BODY
 }
 
+
 @Serializable
 abstract class Thing<out T>(val kind: String) {
     abstract val data: T
@@ -122,7 +123,7 @@ interface RedditAPIService {
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
 
-    @GET("hot")
+    @GET("hot.json")
     suspend fun getHotPosts(
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
@@ -181,7 +182,7 @@ class AuthInterceptor(context: Context) : Interceptor {
                 "Bearer ${authManager.getCurrent().accessToken}"
             )
         } else {
-            throw Exception("No token")
+            Log.e("AuthInterceptor", "Token needs refresh")
         }
         return chain.proceed(requestBuilder.build())
     }
