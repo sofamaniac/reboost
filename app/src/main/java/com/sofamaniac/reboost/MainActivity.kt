@@ -50,9 +50,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
+import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                         val error = AuthorizationException.fromIntent(it.data)
                         authState.value.authManager.update(resp, error)
 
-                        handleAuthorizationResponse(resp, error, { })
+                        handleAuthorizationResponse(resp, error) { }
                         // Handle the authorization response
                     } else {
                         Log.e("MainActivity", "onCreate: $it")
@@ -151,13 +151,13 @@ fun MakeTopBar(title: String, scrollBehavior: TopAppBarScrollBehavior? = null) {
 }
 
 @Composable
-fun BottomBar() {
+fun BottomBar(navController: NavHostController) {
     BottomAppBar {
         Row {
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { navController.navigate(Routes.home.route) }) {
                 Text("Home")
             }
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { navController.navigate(Routes.subscriptions.route) }) {
                 Text("Saved")
             }
         }
@@ -241,7 +241,7 @@ fun MainScreen(
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = { MakeTopBar(currentScreen.value, scrollBehavior) },
                 bottomBar = {
-                    BottomBar()
+                    BottomBar(navController)
                 }
             )
             { innerPadding ->
@@ -306,11 +306,15 @@ fun DrawerContent(
 
 @Composable
 fun NavigationGraph(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
-        composable("home") {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.home.route,
+        modifier = modifier
+    ) {
+        composable(Routes.home.route) {
             HomeScreen()
         }
-        composable("saved") {
+        composable(Routes.subscriptions.route) {
             SavedScreen()
         }
     }
