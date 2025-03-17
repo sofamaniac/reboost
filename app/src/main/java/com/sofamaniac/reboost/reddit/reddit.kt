@@ -1,4 +1,4 @@
-package com.sofamaniac.reboost
+package com.sofamaniac.reboost.reddit
 
 import android.content.Context
 import android.util.Log
@@ -36,21 +36,23 @@ abstract class Thing<out T>(val kind: String) {
 data class ListingData<Type>(
     val after: String? = null,
     val dist: Int = 0,
-    val modhash: String? = null,
+    @SerialName("modhash") val modHash: String? = null,
     val children: List<Type> = emptyList<Type>()
 )
 
 @Serializable
-data class Listing<Type: Thing<Any>>(
+data class Listing<Type : Thing<Any>>(
     val kind: String = "Listing",
     val data: ListingData<Type> = ListingData()
 ) : Iterable<Type> {
     override fun iterator(): Iterator<Type> {
         return data.children.iterator()
     }
+
     fun size(): Int {
         return data.children.size
     }
+
     fun after(): String? {
         Log.d("Listing", "after: ${data.after}")
         return data.after
@@ -58,8 +60,9 @@ data class Listing<Type: Thing<Any>>(
 }
 
 typealias Post = PostThing
+
 @Serializable
-class PostThing(override val data: PostData): Thing<PostData>(kind = "t3") {
+class PostThing(override val data: PostData) : Thing<PostData>(kind = "t3") {
     override fun fullname(): String {
         return data.name
     }
@@ -67,29 +70,20 @@ class PostThing(override val data: PostData): Thing<PostData>(kind = "t3") {
     override fun id(): String {
         return data.id
     }
-}
 
-@Serializable
-data class PostData(
-    val approved_at_utc: String? = null,
-    val subreddit: String = "",
-    val selftext: String = "",
-    val author_fullname: String = "",
-    val saved: Boolean = false,
-    val mod_reason_title: String? = null,
-    val gilded: Int = 0,
-    val clicked: Boolean = false,
-    val title: String = "",
-    val name: String = "",
-    val id: String = "",
-    val url: String = "",
-    val preview: PostPreview = PostPreview(),
-//    val link_flair_richtext: List<String> = emptyList<String>(),
-    val subreddit_name_prefixed: String = "",
-    val hidden: Boolean = false,
-    val pwls: String? = null,
-    val post_hint: String? = null,
-)
+    fun upvotes(): Int {
+        return data.ups
+    }
+
+    fun downvotes(): Int {
+        return data.downs
+    }
+
+    fun score(): Int {
+        return data.score
+    }
+
+}
 
 @Serializable
 data class PostPreview(
@@ -136,7 +130,7 @@ interface RedditAPIService {
 }
 
 @Serializable
-data class Identity (
+data class Identity(
     @SerialName("name") val username: String = "",
 )
 
@@ -144,7 +138,7 @@ object RedditAPI {
     private lateinit var apiService: RedditAPIService
 
     fun getApiService(context: Context): RedditAPIService {
-        if (!::apiService.isInitialized) {
+        if (!RedditAPI::apiService.isInitialized) {
             val contentType = "application/json".toMediaType()
             val json = Json {
                 ignoreUnknownKeys = true
@@ -216,13 +210,19 @@ class RateLimitInterceptor : Interceptor {
         if (remaining <= 0) {
             if (currentTime < resetTime) {
                 val delay = resetTime - currentTime
-                Log.w("RateLimitInterceptor", "Rate limit reached, waiting for ${delay}ms (used all requests)")
+                Log.w(
+                    "RateLimitInterceptor",
+                    "Rate limit reached, waiting for ${delay}ms (used all requests)"
+                )
 
                 Thread.sleep(delay)
             }
         } else if (timeSinceLastRequest < minTimeBetweenRequests) {
             val delay = minTimeBetweenRequests - timeSinceLastRequest
-            Log.w("RateLimitInterceptor", "Rate limit reached, waiting for ${delay}ms (${remaining} requests remaining)")
+            Log.w(
+                "RateLimitInterceptor",
+                "Rate limit reached, waiting for ${delay}ms (${remaining} requests remaining)"
+            )
             Thread.sleep(delay)
         }
 

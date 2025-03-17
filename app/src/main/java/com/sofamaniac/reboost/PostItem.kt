@@ -1,6 +1,6 @@
 package com.sofamaniac.reboost
 
-import androidx.compose.foundation.clickable
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +14,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.sofamaniac.reboost.reddit.Post
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
 @Composable
@@ -33,6 +36,7 @@ fun PostHeader(post: Post, modifier: Modifier = Modifier) {
 
 @Composable
 fun PostBody(post: Post, modifier: Modifier = Modifier) {
+    Log.d("PostBody", "Post body: ${Json.encodeToString(post)}")
     when (post.data.post_hint ?: "") {
         "image" -> {
             MyImage(post.data.url)
