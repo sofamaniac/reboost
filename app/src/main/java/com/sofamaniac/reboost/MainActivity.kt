@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -8,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -36,10 +35,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -62,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -73,15 +72,11 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
-import com.sofamaniac.reboost.reddit.Listing
-import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
-import retrofit2.Response
 
 
 class Viewers(var home: PostViewModel, var saved: PostViewModel)
@@ -166,10 +161,10 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MakeTopBar(
-    title: String,
+fun HomeTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    drawerState: DrawerState
+    drawerState: DrawerState,
+    snackbarHostState: SnackbarHostState
 ) {
     val scope = rememberCoroutineScope()
     TopAppBar(
@@ -179,14 +174,56 @@ fun MakeTopBar(
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = {
-            Text(title)
+            Column {
+                Text("Home")
+                Text("Best", style = MaterialTheme.typography.labelSmall)
+            }
         },
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch { drawerState.open() }
-            }) { Icon(Icons.Default.Menu,"") }
+            }) { Icon(Icons.Default.Menu, "") }
+        },
+        actions = {
+            IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Sort clicked") } }) {
+                val painter = painterResource(id = R.drawable.sort)
+                Image(
+                    painter = painter,
+                    contentDescription = "Sort button"
+                )
+            }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MakeTopBar(
+    title: String,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    drawerState: DrawerState,
+    snackbarHostState: SnackbarHostState
+) {
+    if (title == "home") {
+        HomeTopBar(scrollBehavior, drawerState, snackbarHostState)
+    } else {
+        val scope = rememberCoroutineScope()
+        TopAppBar(
+            scrollBehavior = scrollBehavior,
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            ),
+            title = {
+                Text(title)
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    scope.launch { drawerState.open() }
+                }) { Icon(Icons.Default.Menu, "") }
+            }
+        )
+    }
 
 }
 
@@ -286,12 +323,20 @@ fun MainScreen(
     ) {
         Column(modifier) {
             val currentScreen = remember { mutableStateOf("home") }
+            val snackbarHostState = remember { SnackbarHostState() }
             val scrollBehavior =
                 TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
             Scaffold(
                 modifier = Modifier
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = { MakeTopBar(currentScreen.value, scrollBehavior, drawerState) },
+                topBar = {
+                    MakeTopBar(
+                        navController.currentBackStackEntry?.destination?.route ?: "home",
+                        scrollBehavior,
+                        drawerState,
+                        snackbarHostState
+                    )
+                },
                 bottomBar = {
                     BottomBar(navController)
                 }
