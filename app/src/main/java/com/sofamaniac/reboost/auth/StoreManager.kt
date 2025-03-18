@@ -3,6 +3,7 @@ package com.sofamaniac.reboost.auth
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import net.openid.appauth.AuthState
 import androidx.core.content.edit
 import com.sofamaniac.reboost.BuildConfig
@@ -50,12 +51,18 @@ class StoreManager(context: Context) {
 
     fun update(response: AuthorizationResponse?, exception: AuthorizationException?) {
         getCurrent().update(response, exception)
+        Log.d(TAG, "update: $authState")
         loggedIn = true
         writeState()
     }
 
     fun update(response: TokenResponse?, exception: AuthorizationException?) {
         getCurrent().update(response, exception)
+        loggedIn = true
+        writeState()
+    }
+
+    fun update() {
         loggedIn = true
         writeState()
     }
