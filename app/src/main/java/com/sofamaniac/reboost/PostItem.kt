@@ -63,7 +63,7 @@ fun BottomRow(post: Post, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PostItem(post: Post, modifier: Modifier = Modifier, currentPost: MutableState<Post?>) {
+fun PostItem(post: Post, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,6 +73,11 @@ fun PostItem(post: Post, modifier: Modifier = Modifier, currentPost: MutableStat
         PostHeader(post)
         Text(post.data.title, style = MaterialTheme.typography.titleMedium)
         // TODO add upvote count and comment count
+        Row {
+            Text("${post.score()}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = " · ", style = MaterialTheme.typography.bodySmall)
+            Text("${post.data.num_comments} comments", style = MaterialTheme.typography.bodySmall)
+        }
         PostBody(post)
         BottomRow(post)
     }

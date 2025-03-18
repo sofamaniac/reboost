@@ -8,27 +8,44 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -39,10 +56,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -64,11 +84,17 @@ import net.openid.appauth.AuthorizationResponse
 import retrofit2.Response
 
 
+class Viewers(var home: HomeViewModel, var saved: SavedViewer)
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var authState: MutableState<Manager>
+    private lateinit var viewers: Viewers
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val apiService = RedditAPI.getApiService(this)
+        viewers = Viewers(HomeViewModel(PostRepository(apiService)), SavedViewer(this))
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
@@ -91,6 +117,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     MainScreen(
                         authState.value,
+                        viewers,
                         navController = navController,
                         onLoginClicked = {
                             // Create and launch the auth intent here
@@ -139,7 +166,12 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MakeTopBar(title: String, scrollBehavior: TopAppBarScrollBehavior? = null) {
+fun MakeTopBar(
+    title: String,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    drawerState: DrawerState
+) {
+    val scope = rememberCoroutineScope()
     TopAppBar(
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -148,22 +180,66 @@ fun MakeTopBar(title: String, scrollBehavior: TopAppBarScrollBehavior? = null) {
         ),
         title = {
             Text(title)
+        },
+        navigationIcon = {
+            IconButton(onClick = {
+                scope.launch { drawerState.open() }
+            }) { Icon(Icons.Default.Menu,"") }
         }
     )
 
 }
 
+
 @Composable
 fun BottomBar(navController: NavHostController) {
-    BottomAppBar {
-        Row {
-            Button(onClick = { navController.navigate(Routes.home.route) }) {
-                Text("Home")
-            }
-            Button(onClick = { navController.navigate(Routes.subscriptions.route) }) {
-                Text("Saved")
+    var selected by remember {mutableStateOf(0)}
+    val tabs = listOf<Route>(Routes.home, Routes.search, Routes.subscriptions, Routes.inbox, Routes.profile)
+    CustomNavigationBar {
+        tabs.forEachIndexed { index, tab ->
+            IconButton(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    selected = index
+                    navController.navigate(tab.route)
+                }
+            ) {
+                Icon(
+                    imageVector = tab.icon,
+                    contentDescription = tab.title,
+                    tint = if (selected == index)
+                        MaterialTheme.colorScheme.primary else Color.Gray
+                )
             }
         }
+    }
+}
+
+@Composable
+fun CustomNavigationBar(
+    modifier: Modifier = Modifier,
+    containerColor: Color = NavigationBarDefaults.containerColor,
+    contentColor: Color = MaterialTheme.colorScheme.contentColorFor(containerColor),
+    tonalElevation: Dp = NavigationBarDefaults.Elevation,
+    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
+    content: @Composable RowScope.() -> Unit
+) {
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        tonalElevation = tonalElevation,
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(windowInsets)
+                .defaultMinSize(minHeight = 16.dp) // Change minHeight to your desired height
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
     }
 }
 
@@ -194,7 +270,7 @@ fun OnePostViewer(post: Post, modifier: Modifier = Modifier) {
         prettyPrint = true
     }
     Column(modifier = Modifier.padding(8.dp)) {
-        PostItem(post, currentPost = remember { mutableStateOf(null) })
+        PostItem(post)
         Text(json.encodeToString(Post.serializer(), post), softWrap = true)
     }
 }
@@ -205,17 +281,12 @@ class SavedViewer(context: Context) : PostViewer(context) {
     }
 }
 
-class HomeViewer(context: Context) : PostViewer(context) {
-    override suspend fun requestPage(): Response<Listing<Post>> {
-        return apiService.getHotPosts(after, count)
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authState: Manager,
+    viewers: Viewers,
     navController: NavHostController,
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -242,7 +313,7 @@ fun MainScreen(
             Scaffold(
                 modifier = Modifier
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = { MakeTopBar(currentScreen.value, scrollBehavior) },
+                topBar = { MakeTopBar(currentScreen.value, scrollBehavior, drawerState) },
                 bottomBar = {
                     BottomBar(navController)
                 }
@@ -250,6 +321,7 @@ fun MainScreen(
             { innerPadding ->
                 NavigationGraph(
                     navController,
+                    viewers,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -308,32 +380,28 @@ fun DrawerContent(
 }
 
 @Composable
-fun NavigationGraph(navController: NavHostController, modifier: Modifier = Modifier) {
+fun NavigationGraph(navController: NavHostController, viewers: Viewers, modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
         startDestination = Routes.home.route,
         modifier = modifier
     ) {
         composable(Routes.home.route) {
-            HomeScreen()
+            HomeViewer(viewers.home)
+            //viewers.home.View()
+        }
+        composable(Routes.search.route) {
+            Text("Search")
         }
         composable(Routes.subscriptions.route) {
-            SavedScreen()
+            Text("Subs")
+        }
+        composable(Routes.inbox.route) {
+            Text("You got mail!")
+        }
+        composable(Routes.profile.route) {
+            viewers.saved.View()
         }
     }
 
-}
-
-@Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val viewer = HomeViewer(context)
-    FullPostViewer("Home", viewer)
-}
-
-@Composable
-fun SavedScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val viewer = SavedViewer(context)
-    FullPostViewer("Saved", viewer)
 }

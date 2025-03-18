@@ -103,6 +103,40 @@ data class PostImageSource(
     val height: Int = 0
 )
 
+enum class SimpleSort {
+    Hot,
+    Best,
+    New,
+    Rising;
+
+    override fun toString(): String {
+        return super.toString().lowercase()
+    }
+}
+
+enum class TimedSort {
+    Top,
+    Controversial;
+
+    override fun toString(): String {
+        return super.toString().lowercase()
+    }
+}
+
+@Serializable
+enum class Timeframe {
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year,
+    All;
+
+    override fun toString(): String {
+        return super.toString().lowercase()
+    }
+}
+
 private const val API_LIMIT = 100
 
 interface RedditAPIService {
@@ -118,12 +152,22 @@ interface RedditAPIService {
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
 
-    @GET("hot.json")
-    suspend fun getHotPosts(
+    @GET("{sort}")
+    suspend fun getSorted(
+        @Path("sort") sort: SimpleSort,
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
+
+    @GET("{sort}")
+    suspend fun getSorted(
+        @Path("sort") sort: TimedSort,
+        @Query("t") timeframe: Timeframe,
+        @Query("after") after: String? = null,
+        @Query("count") count: Int = 0,
+        @Query("limit") limit: Int = API_LIMIT,
+    )
 
     @GET("user/{username}/about")
     suspend fun getUserAbout(@Path("username") username: String): Response<Listing<Post>>

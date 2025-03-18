@@ -39,7 +39,8 @@ data class PostData(
     @SerialName("distinguished") val distinguished: String? = null,
     @SerialName("domain") val domain: String = "",
     @SerialName("downs") val downs: Int = 0,
-    @SerialName("edited") val edited: Int? = null,
+    // FIXME
+    //@SerialName("edited") val edited: Int? = null,
     @SerialName("gilded") val gilded: Int = 0,
     @SerialName("gildings") val gildings: Map<String, Int> = emptyMap(),
     @SerialName("hidden") val hidden: Boolean = false,
@@ -130,14 +131,14 @@ data class MediaMetadata(
     @SerialName("e") val e: String,
     @SerialName("id") val id: String,
     @SerialName("m") val m: String,
-    @SerialName("p") val p: List<MediaPreview> = emptyList(),
+    //@SerialName("p") val p: List<MediaPreview> = emptyList(),
     @SerialName("s") val s: MediaPreview,
     @SerialName("status") val status: String
 )
 
 @Serializable
 data class MediaPreview(
-    @SerialName("u") val u: String,
-    @SerialName("x") val x: Int,
-    @SerialName("y") val y: Int
+    @SerialName("u") val u: String = "",
+    @SerialName("x") val x: Int = 0,
+    @SerialName("y") val y: Int = 0
 )

@@ -89,7 +89,7 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
 
-    implementation(libs.coil.compose)
+    implementation(libs.androidx.paging.compose)
 
     implementation(libs.glide) //check for latest version
     implementation(libs.compose) // check for latest version
