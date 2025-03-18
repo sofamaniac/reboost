@@ -7,6 +7,7 @@ import com.sofamaniac.reboost.auth.StoreManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.openid.appauth.AuthorizationService
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -103,18 +104,11 @@ data class PostImageSource(
     val height: Int = 0
 )
 
-enum class SimpleSort {
+enum class Sort {
     Hot,
     Best,
     New,
-    Rising;
-
-    override fun toString(): String {
-        return super.toString().lowercase()
-    }
-}
-
-enum class TimedSort {
+    Rising,
     Top,
     Controversial;
 
@@ -141,35 +135,29 @@ private const val API_LIMIT = 100
 
 interface RedditAPIService {
 
-    @GET("api/v1/me")
+    @GET("api/v1/me.json")
     suspend fun getIdentity(): Response<Identity>
 
-    @GET("user/{user}/saved")
-    suspend fun getSavedPosts(
+    @GET("user/{user}/saved.json")
+    suspend fun getSaved(
         @Path("user") user: String,
+        @Query("sort") sort: Sort = Sort.New,
+        @Query("t") timeframe: Timeframe? = null,
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
 
-    @GET("{sort}")
-    suspend fun getSorted(
-        @Path("sort") sort: SimpleSort,
+    @GET("{sort}.json")
+    suspend fun getHome(
+        @Path("sort") sort: Sort,
+        @Query("t") timeframe: Timeframe? = null,
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
 
-    @GET("{sort}")
-    suspend fun getSorted(
-        @Path("sort") sort: TimedSort,
-        @Query("t") timeframe: Timeframe,
-        @Query("after") after: String? = null,
-        @Query("count") count: Int = 0,
-        @Query("limit") limit: Int = API_LIMIT,
-    )
-
-    @GET("user/{username}/about")
+    @GET("user/{username}/about.json")
     suspend fun getUserAbout(@Path("username") username: String): Response<Listing<Post>>
 }
 
@@ -204,6 +192,7 @@ object RedditAPI {
             .addInterceptor(AuthInterceptor(context))
             .addInterceptor(RateLimitInterceptor())
             .addInterceptor(loggingInterceptor)
+            .addInterceptor(ForceJsonInterceptor())
             .addInterceptor(NetworkInterceptor())
             .build()
     }
@@ -211,6 +200,7 @@ object RedditAPI {
 
 class AuthInterceptor(context: Context) : Interceptor {
     private val authManager = StoreManager(context)
+    private val authService = AuthorizationService(context)
 
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val requestBuilder = chain.request().newBuilder()
@@ -221,6 +211,15 @@ class AuthInterceptor(context: Context) : Interceptor {
                 "Bearer ${authManager.getCurrent().accessToken}"
             )
         } else {
+            authManager.getCurrent().performActionWithFreshTokens(authService) { accessToken, _, ex ->
+                if (ex != null) {
+                    Log.e("AuthInterceptor", "Token refresh failed: ${ex.message}")
+                } else {
+                    Log.d("AuthInterceptor", "Token refreshed successfully")
+                    authManager.update()
+                    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
+                }
+            }
             Log.e("AuthInterceptor", "Token needs refresh")
         }
         return chain.proceed(requestBuilder.build())
@@ -282,5 +281,14 @@ class RateLimitInterceptor : Interceptor {
         } ?: 0
 
         return response
+    }
+}
+
+class ForceJsonInterceptor: Interceptor {
+    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+        val request = chain.request().newBuilder()
+            .addHeader("Accept", "application/json")
+            .build()
+        return chain.proceed(request)
     }
 }

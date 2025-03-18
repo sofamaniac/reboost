@@ -84,7 +84,7 @@ import net.openid.appauth.AuthorizationResponse
 import retrofit2.Response
 
 
-class Viewers(var home: HomeViewModel, var saved: SavedViewer)
+class Viewers(var home: PostViewModel, var saved: PostViewModel)
 
 class MainActivity : ComponentActivity() {
 
@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val apiService = RedditAPI.getApiService(this)
-        viewers = Viewers(HomeViewModel(PostRepository(apiService)), SavedViewer(this))
+        viewers = Viewers(PostViewModel(HomeRepository(apiService)), PostViewModel(SavedRepository(apiService)))
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
@@ -259,28 +259,6 @@ fun MyImage(imageUrl: String, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun FullPostViewer(title: String, viewer: PostViewer, modifier: Modifier = Modifier) {
-    viewer.View()
-}
-
-@Composable
-fun OnePostViewer(post: Post, modifier: Modifier = Modifier) {
-    val json = Json {
-        prettyPrint = true
-    }
-    Column(modifier = Modifier.padding(8.dp)) {
-        PostItem(post)
-        Text(json.encodeToString(Post.serializer(), post), softWrap = true)
-    }
-}
-
-class SavedViewer(context: Context) : PostViewer(context) {
-    override suspend fun requestPage(): Response<Listing<Post>> {
-        return apiService.getSavedPosts(username, after, count)
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -387,8 +365,7 @@ fun NavigationGraph(navController: NavHostController, viewers: Viewers, modifier
         modifier = modifier
     ) {
         composable(Routes.home.route) {
-            HomeViewer(viewers.home)
-            //viewers.home.View()
+            PostViewer(viewers.home)
         }
         composable(Routes.search.route) {
             Text("Search")
@@ -400,7 +377,7 @@ fun NavigationGraph(navController: NavHostController, viewers: Viewers, modifier
             Text("You got mail!")
         }
         composable(Routes.profile.route) {
-            viewers.saved.View()
+            PostViewer(viewers.saved)
         }
     }
 
