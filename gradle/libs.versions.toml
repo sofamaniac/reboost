@@ -1,11 +1,9 @@
 [versions]
 agp = "8.9.0"
 appauth = "0.11.1"
-coilCompose = "2.7.0"
+commonsText = "1.10.0"
 compose = "1.0.0-alpha.1"
-converterGson = "2.9.0"
 glide = "4.16.0"
-gson = "2.10.1"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -28,13 +26,10 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 compose = { module = "com.github.bumptech.glide:compose", version.ref = "compose" }
-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
-converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterGson" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

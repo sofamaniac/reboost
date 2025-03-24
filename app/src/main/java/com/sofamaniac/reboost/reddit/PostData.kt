@@ -104,7 +104,7 @@ data class PostData(
     @SerialName("subreddit_subscribers") val subreddit_subscribers: Int = 0,
     @SerialName("subreddit_type") val subreddit_type: String = "",
     @SerialName("suggested_sort") val suggested_sort: String? = null,
-    @SerialName("thumbnail") val thumbnail: String = "",
+    @SerialName("thumbnail") val thumbnail: String? = null,
     @SerialName("thumbnail_height") val thumbnail_height: Int? = null,
     @SerialName("thumbnail_width") val thumbnail_width: Int? = null,
     @SerialName("title") val title: String = "",

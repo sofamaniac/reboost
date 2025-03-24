@@ -95,4 +95,7 @@ dependencies {
     implementation(libs.compose) // check for latest version
     annotationProcessor(libs.compiler) //check for latest version
 
+    // Parse HTML-encoded urls
+    implementation(libs.commons.text)
+
 }

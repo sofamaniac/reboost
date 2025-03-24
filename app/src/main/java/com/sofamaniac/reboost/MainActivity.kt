@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -48,7 +49,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +57,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -80,6 +79,8 @@ import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.apache.commons.text.StringEscapeUtils
+import java.net.URLDecoder
 
 
 class Viewers(var home: PostViewModel, var saved: PostViewModel)
@@ -299,22 +300,22 @@ fun PostImageFromMetadata(post: Post, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val images = post.data.preview!!
     val image = images.images[0].source
-    val url = image.url
+    val url = StringEscapeUtils.unescapeHtml4(image.url)
     val x = image.width
     val y = image.height
     Column {
-        Text("from metadata")
         GlideImage(
             model = url,
             contentDescription = "Image from URL",
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.FillWidth,
         ) {
             it.placeholder(R.drawable.loading_image) // Default placeholder
-            it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
+            if (post.data.thumbnail != null) {
+                it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
+            }
             //it.placeholder(ColorPainter(Color.Gray))
-            it.error(R.drawable.loading_image) // Default error
+            it.error(R.drawable.warning) // Default error
             it.load(url)
         }
     }
