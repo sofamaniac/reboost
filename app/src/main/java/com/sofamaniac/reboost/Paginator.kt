@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost
 
+import android.app.admin.TargetUser
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,12 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -24,12 +28,14 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.sofamaniac.reboost.reddit.Identity
 import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPIService
 import com.sofamaniac.reboost.reddit.Sort
 import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.Timeframe
+import kotlinx.coroutines.launch
 import retrofit2.Response
 
 
@@ -66,6 +72,10 @@ abstract class PostRepository(
 
     open suspend fun getPosts(after: String): PagedResponse<Post> {
         return makeRequest { apiService.getHome(sort = sort, timeframe = timeframe, after = after) }
+    }
+
+    suspend fun getUser(): Identity? {
+        return apiService.getIdentity().body()
     }
 }
 
@@ -114,6 +124,10 @@ class SavedRepository(apiService: RedditAPIService, sort: Sort = Sort.Best, time
 }
 
 class PostViewModel(repository: PostRepository) : ViewModel() {
+    lateinit var state: LazyListState
+    fun isStateInitialized(): Boolean {
+        return ::state.isInitialized
+    }
     val data = Pager(
         config = PagingConfig(pageSize = 100),
         initialKey = "",
@@ -121,12 +135,22 @@ class PostViewModel(repository: PostRepository) : ViewModel() {
             PostsSource(repository)
         }
     ).flow.cachedIn(viewModelScope)
+    var user: Identity? = null
+
+    init {
+        viewModelScope.launch {
+            user = repository.getUser()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostViewer(viewModel: PostViewModel) {
     val posts = viewModel.data.collectAsLazyPagingItems()
+    if (!viewModel.isStateInitialized()) {
+        viewModel.state = rememberLazyListState()
+    }
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
         onRefresh = {
@@ -140,6 +164,7 @@ fun PostViewer(viewModel: PostViewModel) {
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = viewModel.state,
         ) {
             items(count = posts.itemCount) { index ->
                 posts[index]?.let { post ->
@@ -148,6 +173,24 @@ fun PostViewer(viewModel: PostViewModel) {
                 }
             }
         }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileViewer(viewModel: PostViewModel) {
+    val posts = viewModel.data.collectAsLazyPagingItems()
+    val user = viewModel.user
+    Column {
+        Text("Welcome ${user?.username}")
+        PullToRefreshBox(
+            isRefreshing = posts.loadState.refresh == LoadState.Loading,
+            onRefresh = {
+                posts.refresh()
+            },
+        ) {
+            PostViewer(viewModel)
         }
     }
 }
