@@ -28,9 +28,11 @@ class StoreManager(context: Context) {
     private fun readState() {
         val state = sharedPreferences.getString(STORE_KEY, null)
         if (state != null) {
+            Log.d(TAG, "Found existing data: ${state}")
             authState = AuthState.jsonDeserialize(state)
             loggedIn = true
         } else {
+            Log.d(TAG, "Not prior authentication found")
             authState = AuthState()
             loggedIn = false
         }

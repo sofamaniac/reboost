@@ -57,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -67,11 +68,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
@@ -83,24 +86,27 @@ class Viewers(var home: PostViewModel, var saved: PostViewModel)
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var authState: MutableState<Manager>
+    private lateinit var authState: Manager
     private lateinit var viewers: Viewers
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val apiService = RedditAPI.getApiService(this)
-        viewers = Viewers(PostViewModel(HomeRepository(apiService)), PostViewModel(SavedRepository(apiService)))
+        viewers = Viewers(
+            PostViewModel(HomeRepository(apiService)),
+            PostViewModel(SavedRepository(apiService))
+        )
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
-                authState = remember { mutableStateOf(Manager(this)) }
+                authState = Manager(this)
                 val launcher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
                 ) {
                     if (it.resultCode == RESULT_OK) {
                         val resp = AuthorizationResponse.fromIntent(it.data!!)
                         val error = AuthorizationException.fromIntent(it.data)
-                        authState.value.authManager.update(resp, error)
+                        authState.authManager.update(resp, error)
 
                         handleAuthorizationResponse(resp, error) { }
                         // Handle the authorization response
@@ -111,13 +117,13 @@ class MainActivity : ComponentActivity() {
                 MaterialTheme {
                     val navController = rememberNavController()
                     MainScreen(
-                        authState.value,
+                        authState,
                         viewers,
                         navController = navController,
                         onLoginClicked = {
                             // Create and launch the auth intent here
                             val authIntent =
-                                authState.value.authService.getAuthorizationRequestIntent(authState.value.authRequest)
+                                authState.authService.getAuthorizationRequestIntent(authState.authRequest)
                             launcher.launch(authIntent)
                         },
                     )
@@ -128,7 +134,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        authState.value.dispose()
+        authState.dispose()
     }
 
     private fun handleAuthorizationResponse(
@@ -137,17 +143,17 @@ class MainActivity : ComponentActivity() {
         onLoginSuccess: () -> Unit
     ) {
         if (resp != null) {
-            val basicAuth = BasicAuthClient(authState.value.authConfig.clientId)
+            val basicAuth = BasicAuthClient(authState.authConfig.clientId)
             val tokenExchangeRequest = resp.createTokenExchangeRequest()
             Log.d("MainActivity", "Token request: ${tokenExchangeRequest.jsonSerializeString()}")
-            Log.d("MainActivity", "redirect uri: ${authState.value.authConfig.redirectUri}")
-            authState.value.authService.performTokenRequest(
+            Log.d("MainActivity", "redirect uri: ${authState.authConfig.redirectUri}")
+            authState.authService.performTokenRequest(
                 tokenExchangeRequest,
                 basicAuth
             ) { tokenResponse, tokenException ->
                 if (tokenResponse != null) {
-                    authState.value.authManager.update(tokenResponse, tokenException)
-                    Log.d("MainActivity", "onCreate: ${authState.value.authManager.loggedIn}")
+                    authState.authManager.update(tokenResponse, tokenException)
+                    Log.d("MainActivity", "onCreate: ${authState.authManager.loggedIn}")
                     onLoginSuccess()
                 } else {
                     Log.d("MainActivity", "token exception: ${tokenException.toString()}")
@@ -230,8 +236,14 @@ fun MakeTopBar(
 
 @Composable
 fun BottomBar(navController: NavHostController) {
-    var selected by remember {mutableStateOf(0)}
-    val tabs = listOf<Route>(Routes.home, Routes.search, Routes.subscriptions, Routes.inbox, Routes.profile)
+    var selected by remember { mutableStateOf(0) }
+    val tabs = listOf<Route>(
+        Routes.home,
+        Routes.search,
+        Routes.subscriptions,
+        Routes.inbox,
+        Routes.profile
+    )
     CustomNavigationBar {
         tabs.forEachIndexed { index, tab ->
             IconButton(
@@ -283,16 +295,54 @@ fun CustomNavigationBar(
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MyImage(imageUrl: String, modifier: Modifier = Modifier) {
-    GlideImage(
-        model = imageUrl,
-        contentDescription = "Image from URL",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Fit
-    ) {
-        it.placeholder(R.drawable.loading_image) // Default placeholder
-        it.error(R.drawable.loading_image) // Default error
-        it.load(imageUrl)
+fun PostImageFromMetadata(post: Post, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val images = post.data.preview!!
+    val image = images.images[0].source
+    val url = image.url
+    val x = image.width
+    val y = image.height
+    Column {
+        Text("from metadata")
+        GlideImage(
+            model = url,
+            contentDescription = "Image from URL",
+            modifier = Modifier
+                .fillMaxSize(),
+            contentScale = ContentScale.FillWidth,
+        ) {
+            it.placeholder(R.drawable.loading_image) // Default placeholder
+            it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
+            //it.placeholder(ColorPainter(Color.Gray))
+            it.error(R.drawable.loading_image) // Default error
+            it.load(url)
+        }
+    }
+}
+
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun PostImage(post: Post, modifier: Modifier = Modifier) {
+    if (post.data.preview?.images?.isNotEmpty() == true) {
+        PostImageFromMetadata(post, modifier)
+    } else {
+        val context = LocalContext.current
+        val url = post.data.url
+        GlideImage(
+            model = url,
+            contentDescription = "Image from URL",
+            modifier = Modifier
+                .fillMaxSize()
+                .defaultMinSize(minWidth = 140.dp, minHeight = 140.dp),
+            contentScale = ContentScale.FillWidth,
+        ) {
+            it.placeholder(R.drawable.loading_image) // Default placeholder
+            it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
+            //it.placeholder(ColorPainter(Color.Gray))
+            it.error(R.drawable.loading_image) // Default error
+            it.load(url)
+        }
     }
 }
 
@@ -403,7 +453,11 @@ fun DrawerContent(
 }
 
 @Composable
-fun NavigationGraph(navController: NavHostController, viewers: Viewers, modifier: Modifier = Modifier) {
+fun NavigationGraph(
+    navController: NavHostController,
+    viewers: Viewers,
+    modifier: Modifier = Modifier
+) {
     NavHost(
         navController = navController,
         startDestination = Routes.home.route,
@@ -422,7 +476,7 @@ fun NavigationGraph(navController: NavHostController, viewers: Viewers, modifier
             Text("You got mail!")
         }
         composable(Routes.profile.route) {
-            PostViewer(viewers.saved)
+            ProfileViewer(viewers.saved)
         }
     }
 

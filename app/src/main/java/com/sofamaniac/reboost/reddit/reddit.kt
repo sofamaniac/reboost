@@ -3,11 +3,17 @@ package com.sofamaniac.reboost.reddit
 import android.content.Context
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.BuildConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.openid.appauth.AuthState
+import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService
+import net.openid.appauth.ClientAuthentication
+import net.openid.appauth.ClientSecretBasic
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -201,26 +207,34 @@ object RedditAPI {
 class AuthInterceptor(context: Context) : Interceptor {
     private val authManager = StoreManager(context)
     private val authService = AuthorizationService(context)
+    private val clientAuth: ClientAuthentication = BasicAuthClient(BuildConfig.REDDIT_CLIENT_ID)
+
 
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val requestBuilder = chain.request().newBuilder()
+        Log.d("AuthInterceptor", "intercept")
 
         if (!authManager.getCurrent().needsTokenRefresh) {
+            Log.d("AuthInterceptor", "Refreshing not needed")
             requestBuilder.addHeader(
                 "Authorization",
                 "Bearer ${authManager.getCurrent().accessToken}"
             )
         } else {
-            authManager.getCurrent().performActionWithFreshTokens(authService) { accessToken, _, ex ->
-                if (ex != null) {
-                    Log.e("AuthInterceptor", "Token refresh failed: ${ex.message}")
-                } else {
-                    Log.d("AuthInterceptor", "Token refreshed successfully")
-                    authManager.update()
-                    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
+            authManager.getCurrent().performActionWithFreshTokens(
+                authService,
+                clientAuth,
+                AuthState.AuthStateAction { accessToken, _, ex ->
+                    if (ex != null) {
+                        Log.e("AuthInterceptor", "Token refresh failed: ${ex}")
+                    } else {
+                        Log.d("AuthInterceptor", "Token refreshed successfully")
+                        authManager.update()
+                        requestBuilder.addHeader("Authorization", "Bearer $accessToken")
+                    }
+                    Log.e("AuthInterceptor", "Token needs refresh")
                 }
-            }
-            Log.e("AuthInterceptor", "Token needs refresh")
+            )
         }
         return chain.proceed(requestBuilder.build())
     }
@@ -284,7 +298,7 @@ class RateLimitInterceptor : Interceptor {
     }
 }
 
-class ForceJsonInterceptor: Interceptor {
+class ForceJsonInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val request = chain.request().newBuilder()
             .addHeader("Accept", "application/json")
