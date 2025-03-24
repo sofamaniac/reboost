@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +31,7 @@ fun PostHeader(post: Post, modifier: Modifier = Modifier) {
         // TODO make subreddit clickable
         Text(text = post.data.subreddit, style = MaterialTheme.typography.bodySmall)
         Text(text = " · ", style = MaterialTheme.typography.bodySmall)
-        Text(text = post.data.author_fullname, style = MaterialTheme.typography.bodySmall)
+        Text(text = post.data.author!!, style = MaterialTheme.typography.bodySmall)
         Text(text = " · ", style = MaterialTheme.typography.bodySmall)
         // TODO: add website
         // TODO: add date
@@ -39,13 +44,25 @@ fun PostBody(post: Post, modifier: Modifier = Modifier) {
     Log.d("PostBody", "Post body: ${Json.encodeToString(post)}")
     when (post.data.post_hint ?: "") {
         "image" -> {
-            MyImage(post.data.url)
+            PostImage(post)
         }
+
         "link" -> {
-            Text(post.data.url, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(
+                post.data.url,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
+
         else -> {
-            Text(post.data.selftext, style = MaterialTheme.typography.bodyMedium, maxLines = 6, overflow = TextOverflow.Ellipsis)
+            Text(
+                post.data.selftext,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 6,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -53,11 +70,11 @@ fun PostBody(post: Post, modifier: Modifier = Modifier) {
 @Composable
 fun BottomRow(post: Post, modifier: Modifier = Modifier) {
     Row {
-        Button(onClick = { /* TODO: Upvote */ }) {
-            Text("Up")
+        IconButton(onClick = { /* TODO: Upvote */ }) {
+            Icon(Icons.Default.KeyboardArrowUp, "upvote")
         }
         Button(onClick = { /* TODO: Downvote */ }) {
-            Text("Down")
+            Icon(Icons.Default.KeyboardArrowDown, "downvote")
         }
     }
 }

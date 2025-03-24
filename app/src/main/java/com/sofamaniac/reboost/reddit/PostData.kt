@@ -31,6 +31,7 @@ data class PostData(
     @SerialName("can_mod_post") val can_mod_post: Boolean = false,
     @SerialName("category") val category: String? = null,
     @SerialName("clicked") val clicked: Boolean = false,
+    @SerialName("is_gallery") val isGallery: Boolean = false,
     @SerialName("content_categories") val content_categories: List<String>? = null,
     @SerialName("contest_mode") val contest_mode: Boolean = false,
     @SerialName("created") val created: Double = 0.0,
@@ -80,6 +81,7 @@ data class PostData(
     @SerialName("permalink") val permalink: String = "",
     @SerialName("post_hint") val post_hint: String? = null,
     @SerialName("pinned") val pinned: Boolean = false,
+    @SerialName("preview") val preview: Preview? = null,
     @SerialName("pwls") val pwls: Int? = null,
     @SerialName("quarantine") val quarantine: Boolean = false,
     @SerialName("removal_reason") val removal_reason: String? = null,
@@ -131,7 +133,7 @@ data class MediaMetadata(
     @SerialName("e") val e: String,
     @SerialName("id") val id: String,
     @SerialName("m") val m: String,
-    //@SerialName("p") val p: List<MediaPreview> = emptyList(),
+    @SerialName("p") val p: List<MediaPreview> = emptyList(),
     @SerialName("s") val s: MediaPreview,
     @SerialName("status") val status: String
 )
@@ -141,4 +143,25 @@ data class MediaPreview(
     @SerialName("u") val u: String = "",
     @SerialName("x") val x: Int = 0,
     @SerialName("y") val y: Int = 0
+)
+
+@Serializable
+data class Preview(
+    @SerialName("images") val images: List<PreviewImage> = emptyList(),
+    val enabled: Boolean? = false
+)
+
+@Serializable
+data class PreviewImage(
+    @SerialName("source") val source: PreviewImageSource,
+    @SerialName("resolutions") val resolutions: List<PreviewImageSource>,
+    // val variant
+    val id: String? = null,
+)
+
+@Serializable
+data class PreviewImageSource(
+    @SerialName("url") val url: String,
+    val width: Int,
+    val height: Int,
 )
