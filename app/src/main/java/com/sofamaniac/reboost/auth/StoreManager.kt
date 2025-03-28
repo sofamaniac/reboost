@@ -32,7 +32,7 @@ class StoreManager(context: Context) {
             authState = AuthState.jsonDeserialize(state)
             loggedIn = true
         } else {
-            Log.d(TAG, "Not prior authentication found")
+            Log.d(TAG, "No prior authentication found")
             authState = AuthState()
             loggedIn = false
         }

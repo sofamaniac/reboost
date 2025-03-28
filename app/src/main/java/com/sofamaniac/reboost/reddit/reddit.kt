@@ -3,17 +3,15 @@ package com.sofamaniac.reboost.reddit
 import android.content.Context
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
-import com.sofamaniac.reboost.BuildConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.openid.appauth.AuthState
-import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.ClientAuthentication
-import net.openid.appauth.ClientSecretBasic
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -21,6 +19,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -66,10 +65,9 @@ data class Listing<Type : Thing<Any>>(
     }
 }
 
-typealias Post = PostThing
 
 @Serializable
-class PostThing(override val data: PostData) : Thing<PostData>(kind = "t3") {
+class Post(override val data: PostData) : Thing<PostData>(kind = "t3") {
     override fun fullname(): String {
         return data.name
     }
@@ -89,6 +87,7 @@ class PostThing(override val data: PostData) : Thing<PostData>(kind = "t3") {
     fun score(): Int {
         return data.score
     }
+
 
 }
 
@@ -163,8 +162,29 @@ interface RedditAPIService {
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Listing<Post>>
 
+    @GET("/r/{subreddit}/about")
+    suspend fun getSubInfo(@Path("subreddit") subreddit: String): Response<Subreddit>
+
     @GET("user/{username}/about.json")
     suspend fun getUserAbout(@Path("username") username: String): Response<Listing<Post>>
+
+    @POST("/api/save")
+    suspend fun save(@Query("id") fullname: String): Response<Unit>
+
+    @POST("/api/unsave")
+    suspend fun unsave(@Query("id") fullname: String): Response<Unit>
+
+    /** 0 for neutral, 1 for upvote, -1 for downvote */
+    @POST("/api/vote")
+    suspend fun vote(@Query("id") fullname: String, @Query("dir") direction: Int)
+
+    @GET(" /subreddits/mine/subscriber")
+    suspend fun getSubreddits(
+        @Query("after") after: String? = null,
+        @Query("before") before: String? = null,
+        @Query("count") count: Int = 0,
+        @Query("limit") limit: Int = API_LIMIT
+    ): Response<Listing<Subreddit>>
 }
 
 @Serializable

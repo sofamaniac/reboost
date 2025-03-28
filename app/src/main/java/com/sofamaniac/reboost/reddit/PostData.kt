@@ -1,7 +1,16 @@
 package com.sofamaniac.reboost.reddit
 
+import kotlinx.datetime.Instant
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.longOrNull
 
 @Serializable
 data class PostData(
@@ -25,7 +34,7 @@ data class PostData(
     @SerialName("author_premium") val author_premium: Boolean = false,
 
     @SerialName("awarders") val awarders: List<String> = emptyList(),
-    @SerialName("banned_at_utc") val banned_at_utc: String? = null,
+    @SerialName("banned_at_utc") val banned_at_utc: Instant? = null,
     @SerialName("banned_by") val banned_by: String? = null,
     @SerialName("can_gild") val can_gild: Boolean = false,
     @SerialName("can_mod_post") val can_mod_post: Boolean = false,
@@ -35,13 +44,14 @@ data class PostData(
     @SerialName("content_categories") val content_categories: List<String>? = null,
     @SerialName("contest_mode") val contest_mode: Boolean = false,
     @SerialName("created") val created: Double = 0.0,
-    @SerialName("created_utc") val created_utc: Double = 0.0,
+    @Serializable(with = InstantAsFloatSerializer::class)
+    @SerialName("created_utc") val created_utc: Instant = Instant.DISTANT_FUTURE,
     @SerialName("discussion_type") val discussion_type: String? = null,
     @SerialName("distinguished") val distinguished: String? = null,
     @SerialName("domain") val domain: String = "",
     @SerialName("downs") val downs: Int = 0,
-    // FIXME
-    //@SerialName("edited") val edited: Int? = null,
+    @Serializable(with = FalseOrTimestampSerializer::class)
+    @SerialName("edited") val edited: Long? = null,
     @SerialName("gilded") val gilded: Int = 0,
     @SerialName("gildings") val gildings: Map<String, Int> = emptyMap(),
     @SerialName("hidden") val hidden: Boolean = false,
@@ -55,7 +65,7 @@ data class PostData(
     @SerialName("is_robot_indexable") val is_robot_indexable: Boolean = false,
     @SerialName("is_self") val is_self: Boolean = false,
     @SerialName("is_video") val is_video: Boolean = false,
-    @SerialName("likes") val likes: String? = null,
+    @SerialName("likes") var likes: Boolean? = null,
     @SerialName("link_flair_background_color") val link_flair_background_color: String? = null,
     @SerialName("link_flair_css_class") val link_flair_css_class: String? = null,
     @SerialName("link_flair_richtext") val link_flair_richtext: List<LinkFlairRichtext> = emptyList(),
@@ -64,7 +74,7 @@ data class PostData(
     @SerialName("link_flair_type") val link_flair_type: String? = null,
     @SerialName("locked") val locked: Boolean = false,
     // FIXME
-    // @SerialName("media") val media: String? = null,
+    @SerialName("media") val media: Media? = null,
     @SerialName("media_embed") val media_embed: Map<String, String> = emptyMap(),
     @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata> = emptyMap(),
     @SerialName("media_only") val media_only: Boolean = false,
@@ -88,7 +98,7 @@ data class PostData(
     @SerialName("removed_by") val removed_by: String? = null,
     @SerialName("removed_by_category") val removed_by_category: String? = null,
     @SerialName("report_reasons") val report_reasons: String? = null,
-    @SerialName("saved") val saved: Boolean = false,
+    @SerialName("saved") var saved: Boolean = false,
     @SerialName("score") val score: Int = 0,
     // FIXME
     //@SerialName("secure_media") val secure_media: Map<String, String> = emptyMap(),
@@ -118,6 +128,26 @@ data class PostData(
     @SerialName("view_count") val view_count: String? = null,
     @SerialName("visited") val visited: Boolean = false,
     @SerialName("wls") val wls: Int? = null
+)
+
+@Serializable
+data class Media(
+    val reddit_video: RedditVideo? = null,
+)
+
+
+@Serializable
+data class RedditVideo(
+    val fallback_url: String = "",
+    val width: Int = 0,
+    val height: Int = 0,
+    val scrubber_media_url: String = "",
+    val dash_url: String = "",
+    /** Duration in seconds */
+    val duration: Int,
+    val hls_url: String = "",
+    val is_gif: Boolean = false,
+    val transcoding_status: String = "",
 )
 
 @Serializable
@@ -165,3 +195,40 @@ data class PreviewImageSource(
     val width: Int,
     val height: Int,
 )
+
+object FalseOrTimestampSerializer : KSerializer<Long?> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("FalseOrTimestamp", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Long? {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: throw SerializationException("Expected JsonDecoder")
+        val element = jsonDecoder.decodeJsonElement()
+        return when (element) {
+            is JsonPrimitive -> {
+                if (element.isString && element.content == "false") null
+                else element.longOrNull
+            }
+
+            else -> null
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: Long?) {
+        encoder.encodeLong(value ?: 0L)
+    }
+}
+
+object InstantAsFloatSerializer : KSerializer<Instant> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("InstantAsFloat", PrimitiveKind.FLOAT)
+
+    override fun deserialize(decoder: Decoder): Instant {
+        val timestamp = decoder.decodeDouble() // Use decodeDouble to handle both Float & Double
+        return Instant.fromEpochSeconds(timestamp.toLong())
+    }
+
+    override fun serialize(encoder: Encoder, value: Instant) {
+        encoder.encodeDouble(value.toEpochMilliseconds().toDouble())
+    }
+}

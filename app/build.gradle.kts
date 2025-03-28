@@ -29,7 +29,8 @@ android {
 
         val apiKey = properties.getProperty("REDDIT_CLIENT_ID")!!
 
-        buildConfigField(type="String",
+        buildConfigField(
+            type = "String",
             name = "REDDIT_CLIENT_ID",
             value = apiKey
         )
@@ -43,6 +44,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -86,6 +88,7 @@ dependencies {
     // Json serialization
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.kotlinx.datetime)
 
     implementation(libs.androidx.navigation.compose)
 
@@ -98,4 +101,12 @@ dependencies {
     // Parse HTML-encoded urls
     implementation(libs.commons.text)
 
+    // More material icons
+    implementation(libs.androidx.material.icons.extended)
+
+
+    // Video player
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
 }

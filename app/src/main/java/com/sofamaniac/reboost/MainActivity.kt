@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost
 
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -9,7 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -26,10 +27,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,15 +80,23 @@ import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.ui.SubredditRepository
+import com.sofamaniac.reboost.ui.SubredditsViewer
+import com.sofamaniac.reboost.ui.SubsViewModel
+import com.sofamaniac.reboost.ui.post.HomeRepository
+import com.sofamaniac.reboost.ui.post.PostViewModel
+import com.sofamaniac.reboost.ui.post.PostViewer
+import com.sofamaniac.reboost.ui.post.ProfileViewer
+import com.sofamaniac.reboost.ui.post.SavedRepository
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.apache.commons.text.StringEscapeUtils
-import java.net.URLDecoder
+import java.util.concurrent.Flow
 
 
-class Viewers(var home: PostViewModel, var saved: PostViewModel)
+class Viewers(var home: PostViewModel, var saved: PostViewModel, var subs: SubsViewModel)
 
 class MainActivity : ComponentActivity() {
 
@@ -95,7 +108,8 @@ class MainActivity : ComponentActivity() {
         val apiService = RedditAPI.getApiService(this)
         viewers = Viewers(
             PostViewModel(HomeRepository(apiService)),
-            PostViewModel(SavedRepository(apiService))
+            PostViewModel(SavedRepository(apiService)),
+            SubsViewModel(SubredditRepository(apiService))
         )
         enableEdgeToEdge()
         setContent {
@@ -166,6 +180,25 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun SortMenu() {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(text = { Text("Best") }, onClick = {})
+            DropdownMenuItem(text = { Text("Hot") }, onClick = {})
+            DropdownMenuItem(text = { Text("New") }, onClick = {})
+            DropdownMenuItem(text = { Text("Top") }, onClick = {})
+            DropdownMenuItem(text = { Text("Controversial") }, onClick = {})
+            DropdownMenuItem(text = { Text("Rising") }, onClick = {})
+
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
@@ -192,13 +225,7 @@ fun HomeTopBar(
             }) { Icon(Icons.Default.Menu, "") }
         },
         actions = {
-            IconButton(onClick = { scope.launch { snackbarHostState.showSnackbar("Sort clicked") } }) {
-                val painter = painterResource(id = R.drawable.sort)
-                Image(
-                    painter = painter,
-                    contentDescription = "Sort button"
-                )
-            }
+            SortMenu()
         }
     )
 }
@@ -294,58 +321,9 @@ fun CustomNavigationBar(
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun PostImageFromMetadata(post: Post, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val images = post.data.preview!!
-    val image = images.images[0].source
-    val url = StringEscapeUtils.unescapeHtml4(image.url)
-    val x = image.width
-    val y = image.height
-    Column {
-        GlideImage(
-            model = url,
-            contentDescription = "Image from URL",
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.FillWidth,
-        ) {
-            it.placeholder(R.drawable.loading_image) // Default placeholder
-            if (post.data.thumbnail != null) {
-                it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
-            }
-            //it.placeholder(ColorPainter(Color.Gray))
-            it.error(R.drawable.warning) // Default error
-            it.load(url)
-        }
-    }
-}
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun PostImage(post: Post, modifier: Modifier = Modifier) {
-    if (post.data.preview?.images?.isNotEmpty() == true) {
-        PostImageFromMetadata(post, modifier)
-    } else {
-        val context = LocalContext.current
-        val url = post.data.url
-        GlideImage(
-            model = url,
-            contentDescription = "Image from URL",
-            modifier = Modifier
-                .fillMaxSize()
-                .defaultMinSize(minWidth = 140.dp, minHeight = 140.dp),
-            contentScale = ContentScale.FillWidth,
-        ) {
-            it.placeholder(R.drawable.loading_image) // Default placeholder
-            it.thumbnail(Glide.with(context).asDrawable().load(post.data.thumbnail))
-            //it.placeholder(ColorPainter(Color.Gray))
-            it.error(R.drawable.loading_image) // Default error
-            it.load(url)
-        }
-    }
-}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -471,7 +449,7 @@ fun NavigationGraph(
             Text("Search")
         }
         composable(Routes.subscriptions.route) {
-            Text("Subs")
+            SubscriptionViewer(viewers.subs)
         }
         composable(Routes.inbox.route) {
             Text("You got mail!")
@@ -481,4 +459,9 @@ fun NavigationGraph(
         }
     }
 
+}
+
+@Composable
+fun SubscriptionViewer(viewModel: SubsViewModel) {
+    SubredditsViewer(viewModel)
 }
