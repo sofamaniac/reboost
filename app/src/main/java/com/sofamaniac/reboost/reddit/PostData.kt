@@ -5,10 +5,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.*
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
@@ -73,10 +75,9 @@ data class PostData(
     @SerialName("link_flair_text_color") val link_flair_text_color: String? = null,
     @SerialName("link_flair_type") val link_flair_type: String? = null,
     @SerialName("locked") val locked: Boolean = false,
-    // FIXME
     @SerialName("media") val media: Media? = null,
     @SerialName("media_embed") val media_embed: Map<String, String> = emptyMap(),
-    @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata> = emptyMap(),
+    @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata>? = null,
     @SerialName("media_only") val media_only: Boolean = false,
     @SerialName("mod_note") val mod_note: String? = null,
     @SerialName("mod_reason_by") val mod_reason_by: String? = null,
@@ -130,6 +131,7 @@ data class PostData(
     @SerialName("wls") val wls: Int? = null
 )
 
+//FIXME
 @Serializable
 data class Media(
     val reddit_video: RedditVideo? = null,
@@ -160,19 +162,21 @@ data class LinkFlairRichtext(
 
 @Serializable
 data class MediaMetadata(
-    @SerialName("e") val e: String,
-    @SerialName("id") val id: String,
-    @SerialName("m") val m: String,
-    @SerialName("p") val p: List<MediaPreview> = emptyList(),
-    @SerialName("s") val s: MediaPreview,
+    @SerialName("e") val e: String? = null,
+    @SerialName("id") val id: String? = null,
+    @SerialName("m") val m: String? = null,
+    @SerialName("p") val p: List<MediaPreview>? = null,
+    @SerialName("s") val s: MediaPreview? = null,
+    /** "failed" or "success", the other field are present only if "success" */
     @SerialName("status") val status: String
 )
 
 @Serializable
 data class MediaPreview(
-    @SerialName("u") val u: String = "",
-    @SerialName("x") val x: Int = 0,
-    @SerialName("y") val y: Int = 0
+    /** Url of the preview */
+    @SerialName("u") val url: String = "",
+    @SerialName("x") val width: Int = 0,
+    @SerialName("y") val height: Int = 0
 )
 
 @Serializable

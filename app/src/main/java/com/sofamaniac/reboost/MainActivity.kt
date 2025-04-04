@@ -7,10 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -26,15 +23,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,10 +34,8 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
@@ -55,6 +44,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,53 +53,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.bumptech.glide.Glide
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
-import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.ui.SubredditRepository
-import com.sofamaniac.reboost.ui.SubredditsViewer
-import com.sofamaniac.reboost.ui.SubsViewModel
-import com.sofamaniac.reboost.ui.post.HomeRepository
-import com.sofamaniac.reboost.ui.post.PostViewModel
-import com.sofamaniac.reboost.ui.post.PostViewer
-import com.sofamaniac.reboost.ui.post.ProfileViewer
-import com.sofamaniac.reboost.ui.post.SavedRepository
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
-import org.apache.commons.text.StringEscapeUtils
-import java.util.concurrent.Flow
 
 
-class Viewers(var home: PostViewModel, var saved: PostViewModel, var subs: SubsViewModel)
+interface Tab {
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?)
+
+    @Composable
+    fun Content()
+}
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var authState: Manager
-    private lateinit var viewers: Viewers
+    private lateinit var tabs: List<Tab>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val apiService = RedditAPI.getApiService(this)
-        viewers = Viewers(
-            PostViewModel(HomeRepository(apiService)),
-            PostViewModel(SavedRepository(apiService)),
-            SubsViewModel(SubredditRepository(apiService))
+        tabs = listOf(
+            com.sofamaniac.reboost.ui.SubredditViewerState("awwnime"),
+            com.sofamaniac.reboost.ui.SubredditViewerState("anime"),
+            com.sofamaniac.reboost.ui.subredditList.SubscriptionState(),
+            com.sofamaniac.reboost.ui.SubredditViewerState("unixporn"),
+            com.sofamaniac.reboost.ui.SubredditViewerState("unixporn")
         )
         enableEdgeToEdge()
         setContent {
@@ -133,7 +116,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     MainScreen(
                         authState,
-                        viewers,
+                        tabs,
                         navController = navController,
                         onLoginClicked = {
                             // Create and launch the auth intent here
@@ -180,91 +163,32 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun SortMenu() {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text("Best") }, onClick = {})
-            DropdownMenuItem(text = { Text("Hot") }, onClick = {})
-            DropdownMenuItem(text = { Text("New") }, onClick = {})
-            DropdownMenuItem(text = { Text("Top") }, onClick = {})
-            DropdownMenuItem(text = { Text("Controversial") }, onClick = {})
-            DropdownMenuItem(text = { Text("Rising") }, onClick = {})
-
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeTopBar(
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    drawerState: DrawerState,
-    snackbarHostState: SnackbarHostState
-) {
-    val scope = rememberCoroutineScope()
-    TopAppBar(
-        scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
-        ),
-        title = {
-            Column {
-                Text("Home")
-                Text("Best", style = MaterialTheme.typography.labelSmall)
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = {
-                scope.launch { drawerState.open() }
-            }) { Icon(Icons.Default.Menu, "") }
-        },
-        actions = {
-            SortMenu()
-        }
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MakeTopBar(
-    title: String,
+    activeTab: String,
+    tabs: List<Tab>,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     drawerState: DrawerState,
-    snackbarHostState: SnackbarHostState
 ) {
-    if (title == "home") {
-        HomeTopBar(scrollBehavior, drawerState, snackbarHostState)
-    } else {
-        val scope = rememberCoroutineScope()
-        TopAppBar(
-            scrollBehavior = scrollBehavior,
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.primary,
-            ),
-            title = {
-                Text(title)
-            },
-            navigationIcon = {
-                IconButton(onClick = {
-                    scope.launch { drawerState.open() }
-                }) { Icon(Icons.Default.Menu, "") }
-            }
-        )
-    }
+    val tab = when (activeTab) {
+        "home" ->
+            tabs[0]
 
+        "subscriptions" ->
+            tabs[2]
+
+        else ->
+            tabs.last()
+    }
+    tab.TopBar(drawerState, scrollBehavior)
 }
 
 
 @Composable
 fun BottomBar(navController: NavHostController) {
-    var selected by remember { mutableStateOf(0) }
+    var selected by remember { mutableIntStateOf(0) }
     val tabs = listOf<Route>(
         Routes.home,
         Routes.search,
@@ -320,17 +244,11 @@ fun CustomNavigationBar(
     }
 }
 
-
-
-
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authState: Manager,
-    viewers: Viewers,
+    tabs: List<Tab>,
     navController: NavHostController,
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -351,8 +269,6 @@ fun MainScreen(
         },
     ) {
         Column(modifier) {
-            val currentScreen = remember { mutableStateOf("home") }
-            val snackbarHostState = remember { SnackbarHostState() }
             val scrollBehavior =
                 TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
             Scaffold(
@@ -361,9 +277,9 @@ fun MainScreen(
                 topBar = {
                     MakeTopBar(
                         navController.currentBackStackEntry?.destination?.route ?: "home",
+                        tabs,
                         scrollBehavior,
                         drawerState,
-                        snackbarHostState
                     )
                 },
                 bottomBar = {
@@ -373,8 +289,10 @@ fun MainScreen(
             { innerPadding ->
                 NavigationGraph(
                     navController,
-                    viewers,
-                    modifier = Modifier.padding(innerPadding)
+                    tabs,
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
                 )
             }
         }
@@ -434,34 +352,29 @@ fun DrawerContent(
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
-    viewers: Viewers,
+    tabs: List<Tab>,
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
         startDestination = Routes.home.route,
-        modifier = modifier
+        modifier = modifier.fillMaxSize()
     ) {
         composable(Routes.home.route) {
-            PostViewer(viewers.home)
+            tabs.first().Content()
         }
         composable(Routes.search.route) {
             Text("Search")
         }
         composable(Routes.subscriptions.route) {
-            SubscriptionViewer(viewers.subs)
+            tabs[2].Content()
         }
         composable(Routes.inbox.route) {
             Text("You got mail!")
         }
         composable(Routes.profile.route) {
-            ProfileViewer(viewers.saved)
+            tabs[1].Content()
         }
     }
 
-}
-
-@Composable
-fun SubscriptionViewer(viewModel: SubsViewModel) {
-    SubredditsViewer(viewModel)
 }

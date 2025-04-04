@@ -9,7 +9,6 @@ import com.sofamaniac.reboost.auth.StoreManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.ClientAuthentication
 import okhttp3.Interceptor
@@ -178,13 +177,24 @@ interface RedditAPIService {
     @POST("/api/vote")
     suspend fun vote(@Query("id") fullname: String, @Query("dir") direction: Int)
 
-    @GET(" /subreddits/mine/subscriber")
+    @GET("/subreddits/mine/subscriber")
     suspend fun getSubreddits(
         @Query("after") after: String? = null,
         @Query("before") before: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT
     ): Response<Listing<Subreddit>>
+
+    @GET("/r/{subreddit}/{sort}.json")
+    suspend fun getSubreddit(
+        @Path("subreddit") subreddit: String,
+        @Path("sort") sort: Sort = Sort.Best,
+        @Query("after") after: String? = null,
+        @Query("before") before: String? = null,
+        @Query("count") count: Int = 0,
+        @Query("limit") limit: Int = API_LIMIT,
+        @Query("t") timeframe: Timeframe? = null,
+    ): Response<Listing<Post>>
 }
 
 @Serializable
@@ -243,18 +253,17 @@ class AuthInterceptor(context: Context) : Interceptor {
         } else {
             authManager.getCurrent().performActionWithFreshTokens(
                 authService,
-                clientAuth,
-                AuthState.AuthStateAction { accessToken, _, ex ->
-                    if (ex != null) {
-                        Log.e("AuthInterceptor", "Token refresh failed: ${ex}")
-                    } else {
-                        Log.d("AuthInterceptor", "Token refreshed successfully")
-                        authManager.update()
-                        requestBuilder.addHeader("Authorization", "Bearer $accessToken")
-                    }
-                    Log.e("AuthInterceptor", "Token needs refresh")
+                clientAuth
+            ) { accessToken, _, ex ->
+                if (ex != null) {
+                    Log.e("AuthInterceptor", "Token refresh failed: $ex")
+                } else {
+                    Log.d("AuthInterceptor", "Token refreshed successfully")
+                    authManager.update()
+                    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
                 }
-            )
+                Log.e("AuthInterceptor", "Token needs refresh")
+            }
         }
         return chain.proceed(requestBuilder.build())
     }
