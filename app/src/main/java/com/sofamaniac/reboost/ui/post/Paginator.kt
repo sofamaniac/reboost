@@ -3,18 +3,18 @@ package com.sofamaniac.reboost.ui.post
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -33,7 +33,6 @@ import com.sofamaniac.reboost.reddit.RedditAPIService
 import com.sofamaniac.reboost.reddit.Sort
 import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.Timeframe
-import kotlinx.coroutines.launch
 import retrofit2.Response
 
 
@@ -72,6 +71,11 @@ abstract class PostRepository(
         return makeRequest { apiService.getHome(sort = sort, timeframe = timeframe, after = after) }
     }
 
+    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
+        this.sort = sort
+        this.timeframe = timeframe
+    }
+
     suspend fun getUser(): Identity? {
         return apiService.getIdentity().body()
     }
@@ -100,6 +104,11 @@ class PostsSource(
 
     private suspend fun getPosts(after: String): PagedResponse<Post> {
         return repository.getPosts(after)
+    }
+
+    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
+        repository.updateSort(sort, timeframe)
+        this.invalidate()
     }
 }
 
@@ -136,25 +145,69 @@ class SavedRepository(
     }
 }
 
-class PostViewModel(repository: PostRepository) : ViewModel() {
-    lateinit var state: LazyListState
-    fun isStateInitialized(): Boolean {
-        return ::state.isInitialized
+class SubredditPostsRepository(
+    val subreddit: String,
+    apiService: RedditAPIService,
+    sort: Sort = Sort.Best,
+    timeframe: Timeframe? = null
+) : PostRepository(apiService, sort, timeframe) {
+    private lateinit var username: String
+    override suspend fun getPosts(after: String): PagedResponse<Post> {
+        if (!this::username.isInitialized) {
+            val response = apiService.getIdentity()
+            if (!response.isSuccessful) return PagedResponse()
+            username = response.body()!!.username
+        }
+        return makeRequest {
+            apiService.getSubreddit(
+                subreddit = subreddit,
+                after = after,
+                sort = sort,
+                timeframe = timeframe
+            )
+        }
+    }
+}
+
+class PostViewModel(private val repository: PostRepository) : ViewModel() {
+    private var _listState by mutableStateOf<LazyListState?>(null)
+
+    @Composable
+    fun rememberLazyListState(): LazyListState {
+        if (_listState == null) {
+            _listState = androidx.compose.foundation.lazy.rememberLazyListState()
+        }
+        return _listState!!
     }
 
-    val data = Pager(
+    var data = Pager(
         config = PagingConfig(pageSize = 100),
         initialKey = "",
         pagingSourceFactory = {
-            PostsSource(repository)
+            PostsSource(repository).also {
+                postsSource = it
+            }
         }
     ).flow.cachedIn(viewModelScope)
-    var user: Identity? = null
 
-    init {
-        viewModelScope.launch {
-            user = repository.getUser()
-        }
+    private var postsSource: PostsSource? = null
+
+
+    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
+        repository.updateSort(sort, timeframe)
+        postsSource?.invalidate()
+    }
+
+    fun refresh() {
+        data = Pager(
+            config = PagingConfig(pageSize = 100),
+            initialKey = "",
+            pagingSourceFactory = {
+                PostsSource(repository).also {
+                    postsSource = it
+                }
+            }
+        ).flow.cachedIn(viewModelScope)
     }
 }
 
@@ -162,21 +215,20 @@ class PostViewModel(repository: PostRepository) : ViewModel() {
 @Composable
 fun PostViewer(viewModel: PostViewModel) {
     val posts = viewModel.data.collectAsLazyPagingItems()
-    if (!viewModel.isStateInitialized()) {
-        viewModel.state = rememberLazyListState()
-    }
+    val listState = viewModel.rememberLazyListState()
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
         onRefresh = {
             posts.refresh()
         },
+        modifier = Modifier.fillMaxSize(),
     ) {
         LazyColumn(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            state = viewModel.state,
+            state = listState,
         ) {
             items(count = posts.itemCount) { index ->
                 posts[index]?.let { post ->
@@ -192,16 +244,12 @@ fun PostViewer(viewModel: PostViewModel) {
 @Composable
 fun ProfileViewer(viewModel: PostViewModel) {
     val posts = viewModel.data.collectAsLazyPagingItems()
-    val user = viewModel.user
-    Column {
-        Text("Welcome ${user?.username}")
-        PullToRefreshBox(
-            isRefreshing = posts.loadState.refresh == LoadState.Loading,
-            onRefresh = {
-                posts.refresh()
-            },
-        ) {
-            PostViewer(viewModel)
-        }
+    PullToRefreshBox(
+        isRefreshing = posts.loadState.refresh == LoadState.Loading,
+        onRefresh = {
+            posts.refresh()
+        },
+    ) {
+        PostViewer(viewModel)
     }
 }
