@@ -16,19 +16,18 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.ThumbDown
-import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,11 +56,11 @@ import java.util.Locale
 @Composable
 private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    var subreddit = remember { mutableStateOf(Subreddit()) }
+    var subreddit by remember { mutableStateOf(Subreddit()) }
     LaunchedEffect(subreddit) {
         val response = RedditAPI.getApiService(context).getSubInfo(post.data.subreddit)
         if (response.isSuccessful) {
-            subreddit.value = response.body()!!
+            subreddit = response.body()!!
         }
     }
     Row(
@@ -71,8 +70,8 @@ private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         GlideImage(
-            model = subreddit.value.data.icon_img,
-            contentDescription = "${subreddit.value.data.display_name} icon",
+            model = subreddit.data.icon_img,
+            contentDescription = "${subreddit.data.display_name} icon",
             contentScale = ContentScale.Crop,            // crop the image if it's not a square
             modifier = Modifier
                 .size(24.dp)
@@ -102,12 +101,12 @@ private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
 }
 
 private fun formatElapsedTimeLocalized(
-    creation_date: Instant,
+    creationDate: Instant,
     locale: Locale = Locale.getDefault()
 ): String {
     val end = Clock.systemUTC().millis()
-    val duration = Duration.ofMillis(kotlin.math.abs(end - creation_date.toEpochMilliseconds()))
-    Log.d("formatElapsedTimeLocalized", "${duration}, ${creation_date}, ${end}")
+    val duration = Duration.ofMillis(kotlin.math.abs(end - creationDate.toEpochMilliseconds()))
+    Log.d("formatElapsedTimeLocalized", "${duration}, ${creationDate}, ${end}")
 
     return when {
         duration.toDays() >= 365 -> String.format(locale, "%dy", duration.toDays() / 365)

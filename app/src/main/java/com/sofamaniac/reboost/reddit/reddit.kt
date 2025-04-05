@@ -173,7 +173,23 @@ interface RedditAPIService {
     @POST("/api/unsave")
     suspend fun unsave(@Query("id") fullname: String): Response<Unit>
 
-    /** 0 for neutral, 1 for upvote, -1 for downvote */
+    /**
+     * Votes on a post.
+     *
+     * Allows a user to cast a vote on a specific post.
+     *
+     * @param fullname The full name (ID) of the post to vote on.
+     *                 This uniquely identifies the post within the system.
+     * @param direction The direction of the vote.
+     *                  -  `1`: Upvote
+     *                  - `-1`: Downvote
+     *                  -  `0`: Neutral/Clear Vote (removes any existing vote)
+     * @throws HttpException with a status code of 400 if the vote could not be processed.
+     *                       This can occur if the post is too old for example.
+     * @throws Throwable if any other error occurs during the request.
+     *
+     * @see [POST /api/vote]() for more information.
+     */
     @POST("/api/vote")
     suspend fun vote(@Query("id") fullname: String, @Query("dir") direction: Int)
 

@@ -111,7 +111,6 @@ fun SubredditViewer(state: SubredditViewerState) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 state = listState,
             ) {
-                item { Text(repository.sort.toString()) }
                 items(count = posts.itemCount) { index ->
                     posts[index]?.let { post ->
                         View(post)

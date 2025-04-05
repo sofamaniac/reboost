@@ -31,7 +31,7 @@ class Repository(
         return PagedResponse()
     }
 
-    open suspend fun getSubreddits(after: String): PagedResponse<Subreddit> {
+    suspend fun getSubreddits(after: String): PagedResponse<Subreddit> {
         return makeRequest { apiService.getSubreddits(after = after) }
     }
 

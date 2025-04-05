@@ -21,7 +21,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        manifestPlaceholders.put("appAuthRedirectScheme", "com.sofamaniac.reboost")
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.sofamaniac.reboost"
 
         val keystoreFile = project.rootProject.file("apikeys.properties")
         val properties = Properties()
@@ -48,16 +48,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "21"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+
 }
 
 dependencies {
