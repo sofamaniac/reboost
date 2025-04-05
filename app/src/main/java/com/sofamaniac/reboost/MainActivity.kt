@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -43,6 +44,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,24 +78,16 @@ interface Tab {
     fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?)
 
     @Composable
-    fun Content()
+    fun Content(modifier: Modifier = Modifier)
 }
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var authState: Manager
-    private lateinit var tabs: List<Tab>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val apiService = RedditAPI.getApiService(this)
-        tabs = listOf(
-            com.sofamaniac.reboost.ui.SubredditViewerState("awwnime"),
-            com.sofamaniac.reboost.ui.SubredditViewerState("anime"),
-            com.sofamaniac.reboost.ui.subredditList.SubscriptionState(),
-            com.sofamaniac.reboost.ui.SubredditViewerState("unixporn"),
-            com.sofamaniac.reboost.ui.SubredditViewerState("unixporn")
-        )
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
@@ -116,7 +110,6 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     MainScreen(
                         authState,
-                        tabs,
                         navController = navController,
                         onLoginClicked = {
                             // Create and launch the auth intent here
@@ -167,48 +160,39 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MakeTopBar(
-    activeTab: String,
-    tabs: List<Tab>,
+    navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     drawerState: DrawerState,
 ) {
-    val tab = when (activeTab) {
-        "home" ->
-            tabs[0]
-
-        "subscriptions" ->
-            tabs[2]
-
-        else ->
-            tabs.last()
+    val tabName = navController.currentBackStackEntry?.destination?.route ?: Routes.home.route
+    val tab = getTab(tabName)
+    Box {
+        tab.state.TopBar(drawerState, scrollBehavior)
     }
-    tab.TopBar(drawerState, scrollBehavior)
 }
 
 
 @Composable
-fun BottomBar(navController: NavHostController) {
-    var selected by remember { mutableIntStateOf(0) }
-    val tabs = listOf<Route>(
-        Routes.home,
-        Routes.search,
-        Routes.subscriptions,
-        Routes.inbox,
-        Routes.profile
-    )
+fun BottomBar(navController: NavHostController, selected: MutableState<Int>) {
     CustomNavigationBar {
-        tabs.forEachIndexed { index, tab ->
+        TABS.forEachIndexed { index, tab ->
             IconButton(
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    selected = index
-                    navController.navigate(tab.route)
+                    selected.value = index
+                    navController.navigate(tab.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             ) {
                 Icon(
                     imageVector = tab.icon,
                     contentDescription = tab.title,
-                    tint = if (selected == index)
+                    tint = if (selected.value == index)
                         MaterialTheme.colorScheme.primary else Color.Gray
                 )
             }
@@ -248,7 +232,6 @@ fun CustomNavigationBar(
 @Composable
 fun MainScreen(
     authState: Manager,
-    tabs: List<Tab>,
     navController: NavHostController,
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -268,34 +251,9 @@ fun MainScreen(
             )
         },
     ) {
-        Column(modifier) {
-            val scrollBehavior =
-                TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-            Scaffold(
-                modifier = Modifier
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = {
-                    MakeTopBar(
-                        navController.currentBackStackEntry?.destination?.route ?: "home",
-                        tabs,
-                        scrollBehavior,
-                        drawerState,
-                    )
-                },
-                bottomBar = {
-                    BottomBar(navController)
-                }
-            )
-            { innerPadding ->
-                NavigationGraph(
-                    navController,
-                    tabs,
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                )
-            }
-        }
+        NavigationGraph(
+            navController,
+        )
     }
 }
 
@@ -349,31 +307,38 @@ fun DrawerContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
-    tabs: List<Tab>,
     modifier: Modifier = Modifier
 ) {
+    val selected = remember { mutableIntStateOf(0) }
     NavHost(
         navController = navController,
         startDestination = Routes.home.route,
         modifier = modifier.fillMaxSize()
     ) {
-        composable(Routes.home.route) {
-            tabs.first().Content()
-        }
-        composable(Routes.search.route) {
-            Text("Search")
-        }
-        composable(Routes.subscriptions.route) {
-            tabs[2].Content()
-        }
-        composable(Routes.inbox.route) {
-            Text("You got mail!")
-        }
-        composable(Routes.profile.route) {
-            tabs[1].Content()
+        TABS.forEach { route ->
+            composable(route.route) {
+                val scrollBehavior =
+                    TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+                Scaffold(
+                    modifier = Modifier
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        route.state.TopBar(
+                            rememberDrawerState(DrawerValue.Closed),
+                            scrollBehavior
+                        )
+                    },
+                    bottomBar = { BottomBar(navController, selected) }
+                ) { innerPadding ->
+                    route.state.Content(modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize())
+                }
+            }
         }
     }
 

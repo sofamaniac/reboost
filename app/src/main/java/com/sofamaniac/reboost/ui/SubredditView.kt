@@ -65,8 +65,8 @@ class SubredditViewerState(val subreddit: String) : Tab {
     }
 
     @Composable
-    override fun Content() {
-        SubredditViewer(this)
+    override fun Content(modifier: Modifier) {
+        SubredditViewer(this, modifier)
     }
 }
 
@@ -77,7 +77,7 @@ class SubredditViewerState(val subreddit: String) : Tab {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubredditViewer(state: SubredditViewerState) {
+fun SubredditViewer(state: SubredditViewerState, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val repository = remember(state.subreddit, state.sort, state.timeframe) {
         SubredditPostsRepository(
@@ -94,28 +94,26 @@ fun SubredditViewer(state: SubredditViewerState) {
         state.viewModel!!.updateSort(state.sort, state.timeframe)
         state.viewModel!!.refresh()
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        val posts = state.viewModel!!.data.collectAsLazyPagingItems()
-        val listState = state.viewModel!!.rememberLazyListState()
-        PullToRefreshBox(
-            isRefreshing = posts.loadState.refresh == LoadState.Loading,
-            onRefresh = {
-                posts.refresh()
-            },
-            modifier = Modifier.fillMaxSize(),
+    val posts = state.viewModel!!.data.collectAsLazyPagingItems()
+    val listState = state.viewModel!!.rememberLazyListState()
+    PullToRefreshBox(
+        isRefreshing = posts.loadState.refresh == LoadState.Loading,
+        onRefresh = {
+            posts.refresh()
+        },
+        modifier = modifier.fillMaxSize(),
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = listState,
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                state = listState,
-            ) {
-                items(count = posts.itemCount) { index ->
-                    posts[index]?.let { post ->
-                        View(post)
-                        HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
-                    }
+            items(count = posts.itemCount) { index ->
+                posts[index]?.let { post ->
+                    View(post)
+                    HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
         }

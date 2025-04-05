@@ -2,6 +2,12 @@ package com.sofamaniac.reboost.reddit
 
 import kotlinx.serialization.Serializable
 
+sealed class SubredditId(val id: String) {
+    class Subreddit(id: String) : SubredditId(id)
+    class Home : SubredditId("")
+    class Saved : SubredditId("")
+}
+
 @Serializable
 data class Subreddit(
     override val data: SubredditData = SubredditData()

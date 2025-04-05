@@ -39,7 +39,7 @@ class SubscriptionState : Tab {
     var currentSearch by mutableStateOf("")
 
     @Composable
-    override fun Content() {
+    override fun Content(modifier: Modifier) {
         SubredditListViewer(this)
     }
 
