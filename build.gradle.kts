@@ -4,4 +4,12 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("org.openapi.generator") version "7.12.0" apply false
 }
+
+
+tasks.updateDaemonJvm {
+    jvmVersion = JavaLanguageVersion.of(21)
+}
+
+
