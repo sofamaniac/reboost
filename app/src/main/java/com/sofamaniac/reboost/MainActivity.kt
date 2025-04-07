@@ -341,5 +341,4 @@ fun NavigationGraph(
             }
         }
     }
-
 }

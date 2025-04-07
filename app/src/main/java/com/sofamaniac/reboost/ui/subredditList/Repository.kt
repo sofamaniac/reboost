@@ -3,9 +3,9 @@ package com.sofamaniac.reboost.ui.subredditList
 import android.util.Log
 import com.sofamaniac.reboost.reddit.Identity
 import com.sofamaniac.reboost.reddit.Listing
+import com.sofamaniac.reboost.reddit.PagedResponse
 import com.sofamaniac.reboost.reddit.RedditAPIService
-import com.sofamaniac.reboost.reddit.Subreddit
-import com.sofamaniac.reboost.ui.post.PagedResponse
+import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import retrofit2.Response
 
 class Repository(

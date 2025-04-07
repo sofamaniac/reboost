@@ -42,7 +42,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString

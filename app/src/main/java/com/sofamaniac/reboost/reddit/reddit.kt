@@ -6,6 +6,8 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.reddit.post.PostData
+import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -118,6 +120,13 @@ enum class Sort {
 
     override fun toString(): String {
         return super.toString().lowercase()
+    }
+
+    fun isTimeframe(): Boolean {
+        return when (this) {
+            Hot, Best, New, Rising -> false
+            Top, Controversial -> true
+        }
     }
 }
 
@@ -260,14 +269,14 @@ class AuthInterceptor(context: Context) : Interceptor {
         val requestBuilder = chain.request().newBuilder()
         Log.d("AuthInterceptor", "intercept")
 
-        if (!authManager.getCurrent().needsTokenRefresh) {
+        if (!authManager.authState.needsTokenRefresh) {
             Log.d("AuthInterceptor", "Refreshing not needed")
             requestBuilder.addHeader(
                 "Authorization",
-                "Bearer ${authManager.getCurrent().accessToken}"
+                "Bearer ${authManager.authState.accessToken}"
             )
         } else {
-            authManager.getCurrent().performActionWithFreshTokens(
+            authManager.authState.performActionWithFreshTokens(
                 authService,
                 clientAuth
             ) { accessToken, _, ex ->

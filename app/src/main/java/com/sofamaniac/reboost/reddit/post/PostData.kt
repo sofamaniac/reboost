@@ -1,4 +1,4 @@
-package com.sofamaniac.reboost.reddit
+package com.sofamaniac.reboost.reddit.post
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.KSerializer

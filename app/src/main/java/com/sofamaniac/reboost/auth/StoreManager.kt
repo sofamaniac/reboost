@@ -20,7 +20,9 @@ class StoreManager(context: Context) {
     private val STORE_KEY = "state"
 
     private  var sharedPreferences: SharedPreferences = context.getSharedPreferences(STORE_NAME, Activity.MODE_PRIVATE)
-    private lateinit var authState: AuthState
+    private lateinit var _authState: AuthState
+    val authState: AuthState
+        get() = getCurrent()
 
     var loggedIn: Boolean = false
         private set
@@ -29,31 +31,31 @@ class StoreManager(context: Context) {
         val state = sharedPreferences.getString(STORE_KEY, null)
         if (state != null) {
             Log.d(TAG, "Found existing data: ${state}")
-            authState = AuthState.jsonDeserialize(state)
+            _authState = AuthState.jsonDeserialize(state)
             loggedIn = true
         } else {
             Log.d(TAG, "No prior authentication found")
-            authState = AuthState()
+            _authState = AuthState()
             loggedIn = false
         }
     }
 
     private fun writeState() {
         sharedPreferences.edit() {
-            putString(STORE_KEY, authState.jsonSerializeString())
+            putString(STORE_KEY, _authState.jsonSerializeString())
         }
     }
 
-    fun getCurrent(): AuthState {
-        if (!::authState.isInitialized) {
+    private fun getCurrent(): AuthState {
+        if (!::_authState.isInitialized) {
             readState()
         }
-        return authState
+        return _authState
     }
 
     fun update(response: AuthorizationResponse?, exception: AuthorizationException?) {
         getCurrent().update(response, exception)
-        Log.d(TAG, "update: $authState")
+        Log.d(TAG, "update: $_authState")
         loggedIn = true
         writeState()
     }

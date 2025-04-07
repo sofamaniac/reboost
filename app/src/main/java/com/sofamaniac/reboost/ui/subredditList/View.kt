@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -30,8 +31,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.sofamaniac.reboost.Routes
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.ui.subreddit.SubredditView
 
 
 class SubscriptionState : Tab {
@@ -47,37 +50,39 @@ class SubscriptionState : Tab {
     @Composable
     override fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?) {
         var expanded by remember { mutableStateOf(true) }
-        Row {
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to Home")
+        TopAppBar(scrollBehavior = scrollBehavior, title = {
+            Row {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to Home")
+                }
+                SearchBar(
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            query = currentSearch,
+                            onQueryChange = { currentSearch = it },
+                            onSearch = { },
+                            placeholder = { Text("Go to ...") },
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+//                        modifier = TODO(),
+//                        enabled = TODO(),
+//                        leadingIcon = TODO(),
+//                        trailingIcon = TODO(),
+//                        colors = TODO(),
+//                        interactionSource = TODO(),
+                        )
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+//                modifier = TODO(),
+//                shape = TODO(),
+//                colors = TODO(),
+//                tonalElevation = TODO(),
+//                shadowElevation = TODO(),
+//                windowInsets = TODO(),
+                ) { }
             }
-            SearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = currentSearch,
-                        onQueryChange = { currentSearch = it },
-                        onSearch = { },
-                        placeholder = { Text("Go to ...") },
-                        expanded = expanded,
-                        onExpandedChange = { expanded = it },
-                        modifier = TODO(),
-                        enabled = TODO(),
-                        leadingIcon = TODO(),
-                        trailingIcon = TODO(),
-                        colors = TODO(),
-                        interactionSource = TODO(),
-                    )
-                },
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-                modifier = TODO(),
-                shape = TODO(),
-                colors = TODO(),
-                tonalElevation = TODO(),
-                shadowElevation = TODO(),
-                windowInsets = TODO(),
-            ) { }
-        }
+        })
     }
 }
 
@@ -114,7 +119,9 @@ fun SubredditListViewer(state: SubscriptionState) {
                 sortedSubs[index].let { subs ->
                     Text(
                         text = subs.data.display_name,
-                        modifier = Modifier.clickable {})
+                        modifier = Modifier.clickable {
+                            Routes.subscriptions.state = SubredditView(subs.data.display_name)
+                        })
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
