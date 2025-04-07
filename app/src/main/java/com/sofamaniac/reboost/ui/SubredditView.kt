@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Menu
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Sort
@@ -49,11 +51,24 @@ import kotlinx.coroutines.launch
 /**
  * Data class representing the current state of a SubredditViewer
  */
-class SubredditViewerState(val subreddit: String) : Tab {
-    var sort by mutableStateOf(Sort.Hot)
-    var timeframe by mutableStateOf<Timeframe?>(null)
+data class SubredditViewerState(
+    val subreddit: String,
+    val initialSort: Sort = Sort.Hot,
+    val initialTimeframe: Timeframe? = null,
+    val listState: LazyListState = LazyListState()
+) : Tab {
+    var sort by mutableStateOf(initialSort)
+        private set
+    var timeframe by mutableStateOf(initialTimeframe)
+        private set
     val title: String get() = subreddit
     var viewModel: PostViewModel? = null
+
+    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
+        this.sort = sort
+        this.timeframe = timeframe
+        viewModel?.updateSort(sort, timeframe)
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -79,23 +94,28 @@ class SubredditViewerState(val subreddit: String) : Tab {
 @Composable
 fun SubredditViewer(state: SubredditViewerState, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val repository = remember(state.subreddit, state.sort, state.timeframe) {
-        SubredditPostsRepository(
-            subreddit = state.subreddit,
-            apiService = RedditAPI.getApiService(context),
-            sort = state.sort,
-            timeframe = state.timeframe
-        )
+    val viewModel = remember(state.viewModel) {
+        // Initialize view model
+        state.viewModel ?: run {
+            val repository = SubredditPostsRepository(
+                subreddit = state.subreddit,
+                apiService = RedditAPI.getApiService(context),
+                sort = state.sort,
+                timeframe = state.timeframe
+            )
+            PostViewModel(repository)
+        }.also {
+            state.viewModel = it
+        }
     }
-
-    state.viewModel = state.viewModel ?: PostViewModel(repository)
 
     LaunchedEffect(state.sort, state.timeframe) {
-        state.viewModel!!.updateSort(state.sort, state.timeframe)
-        state.viewModel!!.refresh()
+        state.updateSort(state.sort, state.timeframe)
+        viewModel.refresh()
     }
-    val posts = state.viewModel!!.data.collectAsLazyPagingItems()
-    val listState = state.viewModel!!.rememberLazyListState()
+    val posts = viewModel.data.collectAsLazyPagingItems()
+    //val listState = state.viewModel!!.rememberLazyListState()
+    val listState = remember { state.listState }
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
         onRefresh = {
@@ -110,7 +130,7 @@ fun SubredditViewer(state: SubredditViewerState, modifier: Modifier = Modifier) 
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState,
         ) {
-            items(count = posts.itemCount) { index ->
+            items(count = posts.itemCount, key = posts.itemKey { it.id() }) { index ->
                 posts[index]?.let { post ->
                     View(post)
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
@@ -169,15 +189,15 @@ fun SortMenu(state: SubredditViewerState) {
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(text = { Text("Best") }, onClick = {
-                state.sort = Sort.Best
+                state.updateSort(Sort.Best)
                 expanded = false
             })
             DropdownMenuItem(text = { Text("Hot") }, onClick = {
-                state.sort = Sort.Hot
+                state.updateSort(Sort.Hot)
                 expanded = false
             })
             DropdownMenuItem(text = { Text("New") }, onClick = {
-                state.sort = Sort.New
+                state.updateSort(Sort.New)
                 expanded = false
             })
             DropdownMenuItem(text = { Text("Top") }, onClick = {
