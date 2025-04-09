@@ -5,7 +5,7 @@ import com.sofamaniac.reboost.reddit.Identity
 import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.PagedResponse
 import com.sofamaniac.reboost.reddit.RedditAPIService
-import com.sofamaniac.reboost.reddit.subreddit.Subreddit
+import com.sofamaniac.reboost.reddit.Subreddit
 import retrofit2.Response
 
 class Repository(
@@ -21,7 +21,7 @@ class Repository(
             listing?.let {
                 return PagedResponse(
                     data = it.data.children,
-                    after = it.after(),
+                    after = it.data.after,
                     total = it.size()
                 )
             }

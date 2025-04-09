@@ -6,8 +6,6 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
-import com.sofamaniac.reboost.reddit.post.Post
-import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -142,6 +140,22 @@ interface RedditAPIService {
         @Query("limit") limit: Int = API_LIMIT,
         @Query("t") timeframe: Timeframe? = null,
     ): Response<Listing<Post>>
+
+    /**
+     * Gets the comments for a post.
+     *
+     * @param subreddit The name of the subreddit where the post is located.
+     * @param id The ID of the post.
+     */
+    @GET("/r/{subreddit}/comments/{id}")
+    suspend fun getComments(
+        @Path("subreddit") subreddit: String,
+        @Path("id") id: String,
+        @Query("after") after: String? = null,
+        @Query("before") before: String? = null,
+        @Query("count") count: Int = 0,
+        @Query("limit") limit: Int = API_LIMIT,
+    ): Response<Array<Listing<Thing>>>
 }
 
 @Serializable
@@ -156,7 +170,6 @@ object RedditAPI {
         val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
-            prettyPrint = true
         }
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)

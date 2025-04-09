@@ -3,7 +3,7 @@ package com.sofamaniac.reboost.ui.subredditList
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.sofamaniac.reboost.reddit.PagedResponse
-import com.sofamaniac.reboost.reddit.subreddit.Subreddit
+import com.sofamaniac.reboost.reddit.Subreddit
 
 class Source(
     private val repository: Repository

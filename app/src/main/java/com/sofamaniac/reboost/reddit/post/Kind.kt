@@ -1,5 +1,7 @@
 package com.sofamaniac.reboost.reddit.post
 
+import com.sofamaniac.reboost.reddit.Post
+
 enum class Kind {
     Self,
     Image,

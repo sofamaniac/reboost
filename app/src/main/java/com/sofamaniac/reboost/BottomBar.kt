@@ -37,15 +37,15 @@ fun BottomBar(
     modifier: Modifier = Modifier
 ) {
     val tabs = listOf(
-        Triple(Icons.Filled.Home, Home.route, Home.title),
-        Triple(Icons.Default.Search, Search.route, Search.title),
-        Triple(Icons.AutoMirrored.Outlined.List, Subscriptions.route, Subscriptions.title),
-        Triple(Icons.Default.Email, Inbox.route, Inbox.title),
-        Triple(Icons.Filled.Person, "${Profile.route}/me", Profile.title),
+        Pair(Icons.Filled.Home, Home),
+        Pair(Icons.Default.Search, Search),
+        Pair(Icons.AutoMirrored.Outlined.List, Subscriptions),
+        Pair(Icons.Default.Email, Inbox),
+        Pair(Icons.Filled.Person, Profile("me"))
     )
     CustomNavigationBar(modifier = Modifier.fillMaxWidth()) {
         for ((index, tab) in tabs.withIndex()) {
-            TabButton(index, navController, selected, tab.first, tab.second, tab.third)
+            TabButton(index, navController, selected, tab.first, tab.second, tab.second.title)
         }
     }
 }
@@ -56,7 +56,7 @@ private fun TabButton(
     navController: NavController,
     selected: MutableIntState,
     icon: ImageVector,
-    route: String,
+    route: Any,
     description: String,
     modifier: Modifier = Modifier
 ) {

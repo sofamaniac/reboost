@@ -135,7 +135,8 @@ fun PostFeedViewer(
     state: PostFeedViewModel,
     navController: NavController,
     selected: MutableIntState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showSubredditIcon: Boolean = true
 ) {
 
     LaunchedEffect(state.sort, state.timeframe) {
@@ -157,9 +158,9 @@ fun PostFeedViewer(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState,
         ) {
-            items(count = posts.itemCount, key = posts.itemKey { it.id() }) { index ->
+            items(count = posts.itemCount, key = posts.itemKey { it.data.id }) { index ->
                 posts[index]?.let { post ->
-                    View(post, navController, selected)
+                    View(post, navController, selected, showSubredditIcon = showSubredditIcon)
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }

@@ -125,7 +125,7 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
                     Text(
                         text = subs.data.display_name,
                         modifier = Modifier.clickable {
-                            navController.navigate(Subreddit.route + "/${subs.data.display_name}")
+                            navController.navigate(Subreddit(subs.data.display_name))
                         })
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }

@@ -1,21 +1,7 @@
 package com.sofamaniac.reboost.reddit.subreddit
 
-import com.sofamaniac.reboost.reddit.Thing
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-@Serializable
-data class Subreddit(
-    override val data: SubredditData = SubredditData()
-) : Thing<SubredditData>(kind = "t5") {
-    override fun fullname(): String {
-        return data.name
-    }
-
-    override fun id(): String {
-        return data.id
-    }
-}
 
 
 @Serializable

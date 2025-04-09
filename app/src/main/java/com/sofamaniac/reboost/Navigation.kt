@@ -26,50 +26,52 @@ enum class RouteType {
     Saved,
 }
 
+@Serializable
 object Home : Route {
     override val route: String = RouteType.Home.name
     override val title: String = "Home"
 }
 
-object Profile : Route {
+@Serializable
+class Profile(val username: String) : Route {
     override val route: String = RouteType.Profile.name
     override val title: String = "Profile"
-    const val user = "user"
-    val arguments = listOf(navArgument(user) { type = NavType.StringType })
 }
 
+@Serializable
 object Saved : Route {
     override val route: String = RouteType.Saved.name
     override val title: String = "Saved"
 }
 
+@Serializable
 object Subscriptions : Route {
     override val route: String = RouteType.Subscriptions.name
     override val title: String = "Subscriptions"
 }
 
+@Serializable
 object Search : Route {
     override val route: String = RouteType.Search.name
     override val title: String = "Search"
 }
 
+@Serializable
 object Inbox : Route {
     override val route: String = RouteType.Inbox.name
     override val title: String = "Inbox"
 }
 
-object Subreddit : Route {
+@Serializable
+class Subreddit(val subreddit: String) : Route {
     override val route: String = RouteType.Subreddit.name
-    const val destination: String = "destination"
     override val title: String = "Subreddit"
-    val arguments = listOf(navArgument(Subreddit.destination) { type = NavType.StringType })
 }
 
-object Post : Route {
+@Serializable
+class Post(val post: com.sofamaniac.reboost.reddit.Post) : Route {
     override val route: String = RouteType.Post.name
-    const val destination: String = "destination"
     override val title: String = "Post"
-    val arguments = listOf(navArgument(destination) { type = NavType.StringType })
 }
 
 interface Route {

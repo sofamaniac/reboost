@@ -16,7 +16,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sofamaniac.reboost.reddit.post.Post
+import com.sofamaniac.reboost.reddit.Post
 
 @OptIn(UnstableApi::class)
 @Composable

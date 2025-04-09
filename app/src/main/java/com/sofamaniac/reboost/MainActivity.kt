@@ -67,6 +67,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
@@ -83,6 +84,7 @@ import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import java.util.concurrent.Flow.Subscription
 
 
 interface Tab {
@@ -260,44 +262,49 @@ fun NavigationGraph(
     val selected = remember { mutableIntStateOf(0) }
     NavHost(
         navController = navController,
-        startDestination = Home.route,
+        startDestination = Home,
         modifier = modifier.fillMaxSize()
     ) {
-        composable(Home.route) {
+        composable<Home> {
             selected.intValue = 0
             HomeViewer(navController, selected)
         }
-        composable(Subscriptions.route) {
+        composable<Subscriptions> {
             selected.intValue = 2
             SubredditListViewer(navController = navController)
         }
-        composable(Search.route) {
+        composable<Search> {
             selected.intValue = 1
             PostFeedViewer(HomeView(), navController, selected)
         }
-        composable(Inbox.route) {
-            PostFeedViewer(HomeView(), navController, selected)
-        }
-        composable(
-            route = "${Subreddit.route}/{${Subreddit.destination}}",
-            arguments = Subreddit.arguments
-        ) { navBackStackEntry ->
-            selected.intValue = 2
+        composable<Inbox> {
             SubredditViewer(
                 navController, selected,
                 viewModel {
                     SubredditView(
-                        navBackStackEntry.arguments?.getString(Subreddit.destination) ?: ""
+                        "arknuts"
                     )
                 }
             )
         }
-        composable(
-            route = "${Profile.route}/{${Profile.user}}",
-            arguments = Profile.arguments
-        ) { navBackStackEntry ->
+        composable<Subreddit> { navBackStackEntry ->
+            selected.intValue = 2
+            val subreddit = navBackStackEntry.toRoute<Subreddit>().subreddit
+            SubredditViewer(
+                navController, selected,
+                viewModel {
+                    SubredditView(
+                        subreddit
+                    )
+                }
+            )
+        }
+        composable<Profile> { navBackStackEntry ->
             selected.intValue = 4
             SavedViewer(navController, selected)
         }
+//        composable<Post> { navBackStackEntry ->
+//            val post = navBackStackEntry.toRoute<Post>().post
+//        }
     }
 }

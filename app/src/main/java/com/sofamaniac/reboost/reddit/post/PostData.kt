@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost.reddit.post
 
+import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
 import kotlinx.datetime.Instant
@@ -140,20 +141,13 @@ data class RedditVideo(
     val width: Int = 0,
     val height: Int = 0,
     val scrubber_media_url: String = "",
+    /** Use this url to get the video */
     val dash_url: String = "",
     /** Duration in seconds */
     val duration: Int,
     val hls_url: String = "",
     val is_gif: Boolean = false,
     val transcoding_status: String = "",
-)
-
-@Serializable
-data class LinkFlairRichtext(
-    @SerialName("e") val e: String,
-    @SerialName("t") val t: String? = null,
-    @SerialName("a") val a: String? = null,
-    @SerialName("u") val u: String? = null,
 )
 
 @Serializable

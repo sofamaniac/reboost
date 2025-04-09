@@ -9,10 +9,8 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.BottomBar
 import com.sofamaniac.reboost.reddit.subreddit.SubredditPostsRepository
@@ -41,6 +39,7 @@ fun SubredditViewer(
             viewModel,
             navController,
             selected,
+            showSubredditIcon = false,
             modifier = Modifier.padding(innerPadding)
         )
     }

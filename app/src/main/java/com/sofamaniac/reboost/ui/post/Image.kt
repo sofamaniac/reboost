@@ -13,7 +13,7 @@ import androidx.core.graphics.drawable.toDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.sofamaniac.reboost.reddit.post.Post
+import com.sofamaniac.reboost.reddit.Post
 import org.apache.commons.text.StringEscapeUtils
 
 @OptIn(ExperimentalGlideComposeApi::class)
