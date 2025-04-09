@@ -9,9 +9,9 @@ import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import retrofit2.Response
 
 class Repository(
-    protected val apiService: RedditAPIService,
+    private val apiService: RedditAPIService,
 ) {
-    protected suspend fun makeRequest(
+    private suspend fun makeRequest(
         request: suspend () -> Response<Listing<Subreddit>>
     ): PagedResponse<Subreddit> {
         val response = request()

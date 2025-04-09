@@ -1,6 +1,7 @@
 package com.sofamaniac.reboost.reddit.subreddit
 
 import com.sofamaniac.reboost.reddit.Thing
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,7 +20,7 @@ data class Subreddit(
 
 @Serializable
 data class CommentContributionSettings(
-    val allowed_media_types: List<String>? = null
+    @SerialName("allowed_media_types") val allowedMediaTypes: List<String>? = null
 )
 
 @Serializable

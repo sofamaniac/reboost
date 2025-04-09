@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost.auth
 
-import android.content.Context
 import com.sofamaniac.reboost.BuildConfig
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationService
@@ -8,7 +7,7 @@ import net.openid.appauth.AuthorizationService
 
 /** Handles everything related to the authentication process.
  * Before dropping the object, call [dispose] to release resources. */
-class Manager(context: Context) {
+class Manager(context: android.content.Context) {
     var authService: AuthorizationService private set
     var authManager: StoreManager private set
     var authRequest: AuthorizationRequest private set

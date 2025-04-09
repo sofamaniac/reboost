@@ -1,18 +1,10 @@
 package com.sofamaniac.reboost.reddit.post
 
+import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
+import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
 import kotlinx.datetime.Instant
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.longOrNull
 
 @Serializable
 data class PostData(
@@ -21,6 +13,7 @@ data class PostData(
     @SerialName("approved_at_utc") val approvedAtUtc: String? = null,
     @SerialName("approved_by") val approvedBy: String? = null,
     @SerialName("archived") val archived: Boolean = false,
+
     // Author related fields
     @SerialName("author") val author: String? = "",
     @SerialName("author_flair_background_color") val author_flair_background_color: String? = null,
@@ -68,12 +61,15 @@ data class PostData(
     @SerialName("is_self") val is_self: Boolean = false,
     @SerialName("is_video") val is_video: Boolean = false,
     @SerialName("likes") var likes: Boolean? = null,
+
+    // Flair related fields
     @SerialName("link_flair_background_color") val link_flair_background_color: String? = null,
     @SerialName("link_flair_css_class") val link_flair_css_class: String? = null,
     @SerialName("link_flair_richtext") val link_flair_richtext: List<LinkFlairRichtext> = emptyList(),
     @SerialName("link_flair_text") val link_flair_text: String? = null,
     @SerialName("link_flair_text_color") val link_flair_text_color: String? = null,
     @SerialName("link_flair_type") val link_flair_type: String? = null,
+
     @SerialName("locked") val locked: Boolean = false,
     @SerialName("media") val media: Media? = null,
     @SerialName("media_embed") val media_embed: Map<String, String> = emptyMap(),
@@ -179,60 +175,24 @@ data class MediaPreview(
     @SerialName("y") val height: Int = 0
 )
 
-@Serializable
-data class Preview(
-    @SerialName("images") val images: List<PreviewImage> = emptyList(),
-    val enabled: Boolean? = false
-)
+//@Serializable
+//data class Preview(
+//    @SerialName("images") val images: List<PreviewImage> = emptyList(),
+//    val enabled: Boolean? = false
+//)
+//
+//@Serializable
+//data class PreviewImage(
+//    @SerialName("source") val source: PreviewImageSource,
+//    @SerialName("resolutions") val resolutions: List<PreviewImageSource>,
+//    // val variant
+//    val id: String? = null,
+//)
+//
+//@Serializable
+//data class PreviewImageSource(
+//    @SerialName("url") val url: String,
+//    val width: Int,
+//    val height: Int,
+//)
 
-@Serializable
-data class PreviewImage(
-    @SerialName("source") val source: PreviewImageSource,
-    @SerialName("resolutions") val resolutions: List<PreviewImageSource>,
-    // val variant
-    val id: String? = null,
-)
-
-@Serializable
-data class PreviewImageSource(
-    @SerialName("url") val url: String,
-    val width: Int,
-    val height: Int,
-)
-
-object FalseOrTimestampSerializer : KSerializer<Long?> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("FalseOrTimestamp", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): Long? {
-        val jsonDecoder = decoder as? JsonDecoder
-            ?: throw SerializationException("Expected JsonDecoder")
-        val element = jsonDecoder.decodeJsonElement()
-        return when (element) {
-            is JsonPrimitive -> {
-                if (element.isString && element.content == "false") null
-                else element.longOrNull
-            }
-
-            else -> null
-        }
-    }
-
-    override fun serialize(encoder: Encoder, value: Long?) {
-        encoder.encodeLong(value ?: 0L)
-    }
-}
-
-object InstantAsFloatSerializer : KSerializer<Instant> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("InstantAsFloat", PrimitiveKind.FLOAT)
-
-    override fun deserialize(decoder: Decoder): Instant {
-        val timestamp = decoder.decodeDouble() // Use decodeDouble to handle both Float & Double
-        return Instant.fromEpochSeconds(timestamp.toLong())
-    }
-
-    override fun serialize(encoder: Encoder, value: Instant) {
-        encoder.encodeDouble(value.toEpochMilliseconds().toDouble())
-    }
-}

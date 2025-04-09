@@ -1,24 +1,16 @@
 package com.sofamaniac.reboost.reddit.post
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import androidx.paging.cachedIn
 import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.PagedResponse
-import com.sofamaniac.reboost.reddit.Post
-import com.sofamaniac.reboost.reddit.RedditAPIService
+import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Sort
-import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.Timeframe
 import retrofit2.Response
 
 abstract class PostRepository(
-    protected val apiService: RedditAPIService,
     var sort: Sort = Sort.Best,
     var timeframe: Timeframe? = null
 ) {
@@ -43,7 +35,13 @@ abstract class PostRepository(
     }
 
     open suspend fun getPosts(after: String): PagedResponse<Post> {
-        return makeRequest { apiService.getHome(sort = sort, timeframe = timeframe, after = after) }
+        return makeRequest {
+            RedditAPI.service.getHome(
+                sort = sort,
+                timeframe = timeframe,
+                after = after
+            )
+        }
     }
 
     fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
@@ -78,45 +76,4 @@ class PostsSource(
         return repository.getPosts(after)
     }
 
-}
-
-
-class PostListViewModel(private val repository: PostRepository) : ViewModel() {
-
-    val sort
-        get() = repository.sort
-        private set
-    val timeframe
-        get() = repository.timeframe
-        private set
-
-    var data = Pager(
-        config = PagingConfig(pageSize = 100),
-        initialKey = "",
-        pagingSourceFactory = {
-            PostsSource(repository).also {
-                postsSource = it
-            }
-        }
-    ).flow.cachedIn(viewModelScope)
-
-    private var postsSource: PostsSource? = null
-
-
-    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
-        repository.updateSort(sort, timeframe)
-        postsSource?.invalidate()
-    }
-
-    fun refresh() {
-        data = Pager(
-            config = PagingConfig(pageSize = 100),
-            initialKey = "",
-            pagingSourceFactory = {
-                PostsSource(repository).also {
-                    postsSource = it
-                }
-            }
-        ).flow.cachedIn(viewModelScope)
-    }
 }

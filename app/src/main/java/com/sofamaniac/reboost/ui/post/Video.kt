@@ -3,7 +3,6 @@ package com.sofamaniac.reboost.ui.post
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
@@ -17,7 +16,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sofamaniac.reboost.reddit.Post
+import com.sofamaniac.reboost.reddit.post.Post
 
 @OptIn(UnstableApi::class)
 @Composable

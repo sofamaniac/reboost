@@ -27,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -89,10 +88,9 @@ class SubscriptionState : Tab {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubredditListViewer(state: SubscriptionState) {
-    val context = LocalContext.current
     val repository = remember(state) {
         Repository(
-            apiService = RedditAPI.getApiService(context),
+            apiService = RedditAPI.service
         )
     }
 

@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost.ui.subreddit
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,16 +35,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.LoadState
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.Sort
 import com.sofamaniac.reboost.reddit.Timeframe
-import com.sofamaniac.reboost.reddit.post.PostListViewModel
+import com.sofamaniac.reboost.reddit.post.PostRepository
+import com.sofamaniac.reboost.reddit.post.PostsSource
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
 
@@ -53,24 +59,26 @@ import kotlinx.coroutines.launch
  */
 abstract class PostsFeedViewerState(
     val title: String = "",
-    val initialSort: Sort = Sort.Hot,
-    val initialTimeframe: Timeframe? = null,
-) : Tab {
-    val sort: Sort
-        get() = viewModel?.sort ?: initialSort
-        private set
-    val timeframe: Timeframe
-        get() = viewModel?.timeframe ?: initialTimeframe ?: Timeframe.Day
-        private set
-    var viewModel: PostListViewModel? = null
+    val repository: PostRepository,
+    initialSort: Sort = Sort.Best,
+    initialTimeframe: Timeframe? = null,
+) : Tab, ViewModel() {
     var listState by mutableStateOf(LazyListState())
+    var sort by mutableStateOf(initialSort)
+    var timeframe by mutableStateOf(initialTimeframe)
 
-    /**
-     * Function to use to initialize the view model for the viewer.
-     *
-     * @param context The context to use for the view model.
-     */
-    abstract fun viewModelFactory(context: Context): PostListViewModel
+    var data = Pager(
+        config = PagingConfig(pageSize = 100),
+        initialKey = "",
+        pagingSourceFactory = {
+            PostsSource(repository).also {
+                postsSource = it
+            }
+        }
+    ).flow.cachedIn(viewModelScope)
+
+    private var postsSource: PostsSource? = null
+
 
     /**
      * Updates the current sorting criteria and optionally the timeframe.
@@ -86,14 +94,27 @@ abstract class PostsFeedViewerState(
      *
      * @see Sort
      * @see Timeframe
-     * @see viewModel?.updateSort
-     * @see viewModel?.refresh
      */
     fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
         if (this.sort == sort && this.timeframe == timeframe) return
-        viewModel?.updateSort(sort, timeframe)
-        viewModel?.refresh()
+        this.sort = sort
+        this.timeframe = timeframe
+        repository.updateSort(sort, timeframe)
+        postsSource?.invalidate()
     }
+
+    fun refresh() {
+        data = Pager(
+            config = PagingConfig(pageSize = 100),
+            initialKey = "",
+            pagingSourceFactory = {
+                PostsSource(repository).also {
+                    postsSource = it
+                }
+            }
+        ).flow.cachedIn(viewModelScope)
+    }
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -118,20 +139,11 @@ abstract class PostsFeedViewerState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubredditViewer(state: PostsFeedViewerState, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val viewModel = remember(state.viewModel) {
-        // Initialize view model
-        state.viewModel ?: run {
-            state.viewModelFactory(context)
-        }.also {
-            state.viewModel = it
-        }
-    }
 
     LaunchedEffect(state.sort, state.timeframe) {
         state.updateSort(state.sort, state.timeframe)
     }
-    val posts = viewModel.data.collectAsLazyPagingItems()
+    val posts = state.data.collectAsLazyPagingItems()
     val listState = remember { state.listState }
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
@@ -174,10 +186,13 @@ fun TopBar(
         title = {
             Column {
                 Text(state.title)
-                Row(modifier = Modifier.padding(horizontal = 4.dp)) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(state.sort.toString(), style = MaterialTheme.typography.labelSmall)
                     if (state.timeframe != null) {
-                        Text(".")
+                        Text(".", style = MaterialTheme.typography.labelSmall)
                         Text(
                             state.timeframe.toString(),
                             style = MaterialTheme.typography.labelSmall
@@ -192,6 +207,16 @@ fun TopBar(
             }) { Icon(Icons.Default.Menu, "") }
         },
         actions = {
+            // Sort Dropdown
+            var showMenu by remember { mutableStateOf(false) }
+            IconButton(onClick = { showMenu = !showMenu }) {
+                Icon(Icons.Filled.MoreVert, "Options")
+            }
+
+            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                DropdownMenuItem(onClick = { }, text = { Text("Settings") })
+                DropdownMenuItem(onClick = { }, text = { Text("Info") })
+            }
             SortMenu(state)
         }
     )

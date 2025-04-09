@@ -11,7 +11,6 @@ plugins {
 android {
     namespace = "com.sofamaniac.reboost"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.sofamaniac.reboost"
         minSdk = 31

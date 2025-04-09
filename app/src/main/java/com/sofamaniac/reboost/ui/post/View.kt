@@ -3,12 +3,16 @@ package com.sofamaniac.reboost.ui.post
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
@@ -17,6 +21,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,8 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toDrawable
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.sofamaniac.reboost.reddit.Post
+import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.reddit.post.Kind
+import com.sofamaniac.reboost.reddit.post.Post
 import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -55,10 +63,11 @@ import java.util.Locale
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
+    LocalContext.current
     var subreddit by remember { mutableStateOf(Subreddit()) }
+    // TODO move to fetch earlier than when needed
     LaunchedEffect(subreddit) {
-        val response = RedditAPI.getApiService(context).getSubInfo(post.data.subreddit)
+        val response = RedditAPI.service.getSubInfo(post.data.subreddit)
         if (response.isSuccessful) {
             subreddit = response.body()!!
         }
@@ -73,7 +82,7 @@ private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
             model = subreddit.data.icon_img,
             contentDescription = "${subreddit.data.display_name} icon",
             contentScale = ContentScale.Crop,            // crop the image if it's not a square
-            modifier = Modifier
+            modifier = modifier
                 .size(24.dp)
                 .clip(CircleShape)                       // clip to the circle shape
         ) {
@@ -106,7 +115,7 @@ private fun formatElapsedTimeLocalized(
 ): String {
     val end = Clock.systemUTC().millis()
     val duration = Duration.ofMillis(kotlin.math.abs(end - creationDate.toEpochMilliseconds()))
-    Log.d("formatElapsedTimeLocalized", "${duration}, ${creationDate}, ${end}")
+    Log.d("formatElapsedTimeLocalized", "${duration}, ${creationDate}, $end")
 
     return when {
         duration.toDays() >= 365 -> String.format(locale, "%dy", duration.toDays() / 365)
@@ -118,18 +127,19 @@ private fun formatElapsedTimeLocalized(
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun PostBody(post: Post, modifier: Modifier = Modifier) {
-    Log.d("PostBody", "Post body: ${Json.encodeToString(post)}")
-    when (post.data.post_hint ?: "") {
-        "image" -> {
+    when (post.kind()) {
+        Kind.Image -> {
             PostImage(post)
         }
-        "rich:video", "hosted:video" -> {
+
+        Kind.Video -> {
             PostVideo(post)
         }
 
-        "link" -> {
+        Kind.Link -> {
             Text(
                 post.data.url,
                 style = MaterialTheme.typography.bodyMedium,
@@ -140,24 +150,20 @@ private fun PostBody(post: Post, modifier: Modifier = Modifier) {
         }
 
         else -> {
-            Column {
-                Text("${post.data.post_hint}")
-                Text(
-                    post.data.selftext,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 6,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = modifier,
-                )
-            }
+            Text(
+                post.data.selftext,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 6,
+                overflow = TextOverflow.Ellipsis,
+                modifier = modifier,
+            )
         }
     }
 }
 
 @Composable
-private fun upButton(post: Post) {
-    val context = LocalContext.current
-    val reddit = RedditAPI.getApiService(context)
+private fun UpButton(post: Post) {
+    val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
     val likes = remember { mutableStateOf(post.data.likes) }
     val buttonColor = animateColorAsState(
@@ -179,8 +185,8 @@ private fun upButton(post: Post) {
 
 @Composable
 private fun DownButton(post: Post) {
-    val context = LocalContext.current
-    val reddit = RedditAPI.getApiService(context)
+    LocalContext.current
+    val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
     val likes = remember { mutableStateOf(post.data.likes) }
     val buttonColor = animateColorAsState(
@@ -202,8 +208,8 @@ private fun DownButton(post: Post) {
 
 @Composable
 private fun SavedButton(post: Post) {
-    val context = LocalContext.current
-    val reddit = RedditAPI.getApiService(context)
+    LocalContext.current
+    val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
     val saved = remember { mutableStateOf(post.data.saved) }
     val buttonColor = animateColorAsState(
@@ -229,7 +235,7 @@ private fun SavedButton(post: Post) {
 @Composable
 private fun BottomRow(post: Post, modifier: Modifier = Modifier) {
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-        upButton(post)
+        UpButton(post)
         DownButton(post)
         SavedButton(post)
         IconButton(onClick = {/*TODO: Comments */ }) {
@@ -238,34 +244,73 @@ private fun BottomRow(post: Post, modifier: Modifier = Modifier) {
         IconButton(onClick = { /*TODO: exit to app*/ }) {
             Icon(Icons.AutoMirrored.Outlined.ExitToApp, "open in app")
         }
-        IconButton(onClick = {/*TODO*/ }) {
-            Icon(Icons.Default.MoreVert, "more")
-        }
+        PostOptions(post)
     }
 }
 
 @Composable
+private fun PostOptions(post: Post, modifier: Modifier = Modifier) {
+    var showOptions by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { showOptions = true }) {
+            Icon(Icons.Default.MoreVert, "more")
+        }
+        DropdownMenu(expanded = showOptions, onDismissRequest = { showOptions = false }) {
+            if (BuildConfig.DEBUG) {
+                DropdownMenuItem(text = { Text("Post content") }, onClick = {
+                    Log.d("Post", Json.encodeToString(post))
+                })
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun PostTitle(post: Post, modifier: Modifier = Modifier, enablePreview: Boolean = true) {
+    val titleModifier =
+        if (enablePreview && post.thumbnail() != null) modifier.fillMaxSize(fraction = 0.75f) else modifier
+    Row(modifier = modifier) {
+        Text(post.data.title, style = MaterialTheme.typography.bodyLarge, modifier = titleModifier)
+        if (enablePreview && post.thumbnail() != null) {
+            GlideImage(
+                model = post.thumbnail(),
+                contentDescription = "Thumbnail",
+                modifier = modifier
+                    .fillMaxSize()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
 fun View(post: Post, modifier: Modifier = Modifier) {
-    val modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+    val modifier = Modifier.padding(horizontal = 4.dp)
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp), // Add some padding around the post
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Space between title, content, buttons
+        modifier = modifier
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
     ) {
         PostHeader(post, modifier)
-        Text(post.data.title, style = MaterialTheme.typography.titleMedium, modifier = modifier)
-        // TODO add upvote count and comment count
+        PostTitle(post, enablePreview = post.kind() == Kind.Link, modifier = modifier)
+        // TODO add flair
         Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = modifier
+                // FIXME: why is the padding necessary here but not for the other parts ?
+                .padding(start = 4.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("${post.score()}", style = MaterialTheme.typography.bodyMedium)
             Text(text = "·", style = MaterialTheme.typography.bodySmall)
             Text("${post.data.num_comments} comments", style = MaterialTheme.typography.bodySmall)
         }
-        PostBody(post, modifier)
+        PostBody(post)
         BottomRow(post, modifier)
     }
 }

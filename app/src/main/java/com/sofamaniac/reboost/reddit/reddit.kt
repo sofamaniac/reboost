@@ -6,7 +6,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
-import com.sofamaniac.reboost.reddit.post.PostData
+import com.sofamaniac.reboost.reddit.post.Post
 import com.sofamaniac.reboost.reddit.subreddit.Subreddit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -24,91 +24,13 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-private val BASE_URL = "https://oauth.reddit.com/"
+private const val BASE_URL = "https://oauth.reddit.com/"
 
 
 val loggingInterceptor = HttpLoggingInterceptor().apply {
     level = HttpLoggingInterceptor.Level.BODY
 }
 
-
-@Serializable
-abstract class Thing<out T>(val kind: String) {
-    abstract val data: T
-    abstract fun fullname(): String
-    abstract fun id(): String
-}
-
-@Serializable
-data class ListingData<Type>(
-    val after: String? = null,
-    val dist: Int = 0,
-    @SerialName("modhash") val modHash: String? = null,
-    val children: List<Type> = emptyList<Type>()
-)
-
-@Serializable
-data class Listing<Type : Thing<Any>>(
-    val kind: String = "Listing",
-    val data: ListingData<Type> = ListingData()
-) : Iterable<Type> {
-    override fun iterator(): Iterator<Type> {
-        return data.children.iterator()
-    }
-
-    fun size(): Int {
-        return data.children.size
-    }
-
-    fun after(): String? {
-        Log.d("Listing", "after: ${data.after}")
-        return data.after
-    }
-}
-
-
-@Serializable
-class Post(override val data: PostData) : Thing<PostData>(kind = "t3") {
-    override fun fullname(): String {
-        return data.name
-    }
-
-    override fun id(): String {
-        return data.id
-    }
-
-    fun upvotes(): Int {
-        return data.ups
-    }
-
-    fun downvotes(): Int {
-        return data.downs
-    }
-
-    fun score(): Int {
-        return data.score
-    }
-
-
-}
-
-@Serializable
-data class PostPreview(
-    val images: List<PostImage> = emptyList()
-)
-
-@Serializable
-data class PostImage(
-    val source: PostImageSource,
-    val resolutions: List<PostImageSource>
-)
-
-@Serializable
-data class PostImageSource(
-    val url: String = "",
-    val width: Int = 0,
-    val height: Int = 0
-)
 
 enum class Sort {
     Hot,
@@ -197,7 +119,7 @@ interface RedditAPIService {
      *                       This can occur if the post is too old for example.
      * @throws Throwable if any other error occurs during the request.
      *
-     * @see [POST /api/vote]() for more information.
+     * See [POST /api/vote](https://www.reddit.com/dev/api#POST_api_vote) for more information.
      */
     @POST("/api/vote")
     suspend fun vote(@Query("id") fullname: String, @Query("dir") direction: Int)
@@ -228,24 +150,20 @@ data class Identity(
 )
 
 object RedditAPI {
-    private lateinit var apiService: RedditAPIService
-
-    fun getApiService(context: Context): RedditAPIService {
-        if (!RedditAPI::apiService.isInitialized) {
-            val contentType = "application/json".toMediaType()
-            val json = Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                prettyPrint = true
-            }
-            val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(json.asConverterFactory(contentType))
-                .client(okhttpClient(context))
-                .build()
-            apiService = retrofit.create(RedditAPIService::class.java)
+    lateinit var service: RedditAPIService
+    fun init(context: Context) {
+        val contentType = "application/json".toMediaType()
+        val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            prettyPrint = true
         }
-        return apiService
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .client(okhttpClient(context))
+            .build()
+        service = retrofit.create(RedditAPIService::class.java)
     }
 
     private fun okhttpClient(context: Context): OkHttpClient {

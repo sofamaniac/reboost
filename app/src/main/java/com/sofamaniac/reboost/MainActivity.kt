@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -55,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -87,11 +85,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val apiService = RedditAPI.getApiService(this)
+        authState = Manager(this)
+        RedditAPI.init(this)
         enableEdgeToEdge()
         setContent {
             ReboostTheme {
-                authState = Manager(this)
                 val launcher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
                 ) {
@@ -155,22 +153,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MakeTopBar(
-    navController: NavHostController,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    drawerState: DrawerState,
-) {
-    val tabName = navController.currentBackStackEntry?.destination?.route ?: Routes.home.route
-    val tab = getTab(tabName)
-    Box {
-        tab.state.TopBar(drawerState, scrollBehavior)
-    }
-}
-
 
 @Composable
 fun BottomBar(navController: NavHostController, selected: MutableState<Int>) {
@@ -280,7 +262,6 @@ fun DrawerContent(
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {
-            val context = LocalContext.current
             if (!authManager.loggedIn) {
                 Spacer(modifier = Modifier.padding(16.dp))
                 LoginButton(
@@ -292,7 +273,7 @@ fun DrawerContent(
                 if (username == "Anonymous") {
                     LaunchedEffect(username) {
                         username =
-                            RedditAPI.getApiService(context).getIdentity().body()?.username
+                            RedditAPI.service.getIdentity().body()?.username
                                 ?: "Anonymous"
                     }
                 }

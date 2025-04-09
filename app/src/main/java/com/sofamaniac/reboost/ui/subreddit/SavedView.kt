@@ -1,9 +1,5 @@
 package com.sofamaniac.reboost.ui.subreddit
 
-import android.content.Context
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerState
@@ -17,19 +13,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.post.PostListViewModel
 import com.sofamaniac.reboost.reddit.subreddit.SavedRepository
 import kotlinx.coroutines.launch
 
-class SavedView : PostsFeedViewerState() {
-    override fun viewModelFactory(context: Context): PostListViewModel {
-        val apiService = RedditAPI.getApiService(context)
-        val repository = SavedRepository(apiService)
-        return PostListViewModel(repository)
-    }
+class SavedView : PostsFeedViewerState(title = "Saved Posts", repository = SavedRepository()) {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
