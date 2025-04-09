@@ -23,6 +23,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -33,16 +39,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -53,17 +57,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.ui.subreddit.HomeView
+import com.sofamaniac.reboost.ui.subreddit.HomeViewer
+import com.sofamaniac.reboost.ui.subreddit.SubredditViewer
+import com.sofamaniac.reboost.ui.subreddit.PostFeedViewer
+import com.sofamaniac.reboost.ui.subreddit.SavedView
+import com.sofamaniac.reboost.ui.subreddit.SavedViewer
+import com.sofamaniac.reboost.ui.subreddit.SubredditView
+import com.sofamaniac.reboost.ui.subredditList.SubredditListViewer
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
@@ -76,7 +91,11 @@ interface Tab {
     fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?)
 
     @Composable
-    fun Content(modifier: Modifier = Modifier)
+    fun Content(
+        navController: NavController,
+        selected: MutableIntState,
+        modifier: Modifier = Modifier
+    )
 }
 
 class MainActivity : ComponentActivity() {
@@ -151,62 +170,6 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.e("MainActivity", "auth exception: ${error.toString()}")
         }
-    }
-}
-
-@Composable
-fun BottomBar(navController: NavHostController, selected: MutableState<Int>) {
-    CustomNavigationBar {
-        TABS.forEachIndexed { index, tab ->
-            IconButton(
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    selected.value = index
-                    navController.navigate(tab.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = tab.icon,
-                    contentDescription = tab.title,
-                    tint = if (selected.value == index)
-                        MaterialTheme.colorScheme.primary else Color.Gray
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CustomNavigationBar(
-    modifier: Modifier = Modifier,
-    containerColor: Color = NavigationBarDefaults.containerColor,
-    contentColor: Color = MaterialTheme.colorScheme.contentColorFor(containerColor),
-    tonalElevation: Dp = NavigationBarDefaults.Elevation,
-    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
-    content: @Composable RowScope.() -> Unit
-) {
-    Surface(
-        color = containerColor,
-        contentColor = contentColor,
-        tonalElevation = tonalElevation,
-        modifier = modifier
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(windowInsets)
-                .defaultMinSize(minHeight = 16.dp) // Change minHeight to your desired height
-                .selectableGroup(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
     }
 }
 
@@ -297,29 +260,44 @@ fun NavigationGraph(
     val selected = remember { mutableIntStateOf(0) }
     NavHost(
         navController = navController,
-        startDestination = Routes.home.route,
+        startDestination = Home.route,
         modifier = modifier.fillMaxSize()
     ) {
-        TABS.forEach { route ->
-            composable(route.route) {
-                val scrollBehavior =
-                    TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-                Scaffold(
-                    modifier = Modifier
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        route.state.TopBar(
-                            rememberDrawerState(DrawerValue.Closed),
-                            scrollBehavior
-                        )
-                    },
-                    bottomBar = { BottomBar(navController, selected) }
-                ) { innerPadding ->
-                    route.state.Content(modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize())
+        composable(Home.route) {
+            selected.intValue = 0
+            HomeViewer(navController, selected)
+        }
+        composable(Subscriptions.route) {
+            selected.intValue = 2
+            SubredditListViewer(navController = navController)
+        }
+        composable(Search.route) {
+            selected.intValue = 1
+            PostFeedViewer(HomeView(), navController, selected)
+        }
+        composable(Inbox.route) {
+            PostFeedViewer(HomeView(), navController, selected)
+        }
+        composable(
+            route = "${Subreddit.route}/{${Subreddit.destination}}",
+            arguments = Subreddit.arguments
+        ) { navBackStackEntry ->
+            selected.intValue = 2
+            SubredditViewer(
+                navController, selected,
+                viewModel {
+                    SubredditView(
+                        navBackStackEntry.arguments?.getString(Subreddit.destination) ?: ""
+                    )
                 }
-            }
+            )
+        }
+        composable(
+            route = "${Profile.route}/{${Profile.user}}",
+            arguments = Profile.arguments
+        ) { navBackStackEntry ->
+            selected.intValue = 4
+            SavedViewer(navController, selected)
         }
     }
 }

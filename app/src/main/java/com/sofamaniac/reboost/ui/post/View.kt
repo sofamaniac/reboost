@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,9 +42,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toDrawable
+import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.BuildConfig
@@ -62,7 +69,12 @@ import java.util.Locale
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
+private fun PostHeader(
+    post: Post,
+    navController: NavController,
+    selected: MutableIntState,
+    modifier: Modifier = Modifier
+) {
     LocalContext.current
     var subreddit by remember { mutableStateOf(Subreddit()) }
     // TODO move to fetch earlier than when needed
@@ -89,22 +101,39 @@ private fun PostHeader(post: Post, modifier: Modifier = Modifier) {
             it.placeholder(Color.Red.toArgb().toDrawable())
         }
         // TODO make subreddit clickable
-        Text(
-            text = post.data.subreddit,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error
-        )
-        Text(text = "·", style = MaterialTheme.typography.bodySmall)
-        Text(text = post.data.author!!, style = MaterialTheme.typography.bodySmall)
-        if (!post.data.domain.contains("reddit") && !post.data.domain.endsWith("redd.it") && !post.data.is_self) {
-            Text(text = "·", style = MaterialTheme.typography.bodySmall)
-            Text(text = post.data.domain, style = MaterialTheme.typography.bodySmall)
+
+        val text = buildAnnotatedString {
+            withLink(
+                LinkAnnotation.Clickable(
+                    tag = "Subreddit",
+                    styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                    linkInteractionListener = {
+                        navController.navigate("${com.sofamaniac.reboost.Subreddit.route}/${post.data.subreddit}")
+                        selected.intValue = 2
+                    })
+            ) {
+                append(post.data.subreddit)
+            }
+            append(" · ")
+            withLink(
+                LinkAnnotation.Clickable(
+                    tag = "User",
+                    styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                    linkInteractionListener = {
+                        navController.navigate("${com.sofamaniac.reboost.Profile.route}/${post.data.author!!}")
+                        selected.intValue = 5
+                    })
+            ) {
+                append(post.data.author!!)
+            }
+            if (!post.data.domain.contains("reddit") && !post.data.domain.endsWith("redd.it") && !post.data.is_self) {
+                append(" · ")
+                append(post.data.domain)
+            }
+            append(" · ")
+            append(formatElapsedTimeLocalized(post.data.created_utc))
         }
-        Text(text = "·", style = MaterialTheme.typography.bodySmall)
-        Text(
-            text = formatElapsedTimeLocalized(post.data.created_utc),
-            style = MaterialTheme.typography.bodySmall
-        )
+        Text(text, style = MaterialTheme.typography.bodySmall)
         // TODO: take last edit into account
     }
 }
@@ -288,14 +317,19 @@ fun PostTitle(post: Post, modifier: Modifier = Modifier, enablePreview: Boolean 
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun View(post: Post, modifier: Modifier = Modifier) {
+fun View(
+    post: Post,
+    navController: NavController,
+    selected: MutableIntState,
+    modifier: Modifier = Modifier
+) {
     val modifier = Modifier.padding(horizontal = 4.dp)
     Column(
         modifier = modifier
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
     ) {
-        PostHeader(post, modifier)
+        PostHeader(post, navController, selected, modifier)
         PostTitle(post, enablePreview = post.kind() == Kind.Link, modifier = modifier)
         // TODO add flair
         Row(

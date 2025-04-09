@@ -22,27 +22,34 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.sofamaniac.reboost.Routes
+import com.sofamaniac.reboost.Subreddit
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.ui.subreddit.SubredditView
 
 
-class SubscriptionState : Tab {
+class SubscriptionState : Tab, ViewModel() {
     var viewModel: SubscriptionViewModel? = null
     var currentSearch by mutableStateOf("")
 
     @Composable
-    override fun Content(modifier: Modifier) {
-        SubredditListViewer(this)
+    override fun Content(
+        navController: NavController,
+        selected: MutableIntState,
+        modifier: Modifier
+    ) {
+        SubredditListViewer(this, navController)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +94,7 @@ class SubscriptionState : Tab {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubredditListViewer(state: SubscriptionState) {
+fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: NavController) {
     val repository = remember(state) {
         Repository(
             apiService = RedditAPI.service
@@ -118,7 +125,7 @@ fun SubredditListViewer(state: SubscriptionState) {
                     Text(
                         text = subs.data.display_name,
                         modifier = Modifier.clickable {
-                            Routes.subscriptions.state = SubredditView(subs.data.display_name)
+                            navController.navigate(Subreddit.route + "/${subs.data.display_name}")
                         })
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }

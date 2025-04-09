@@ -29,6 +29,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -57,7 +59,7 @@ import kotlinx.coroutines.launch
 /**
  * Data class representing the current state of a SubredditViewer
  */
-abstract class PostsFeedViewerState(
+abstract class PostFeedViewModel(
     val title: String = "",
     val repository: PostRepository,
     initialSort: Sort = Sort.Best,
@@ -67,6 +69,8 @@ abstract class PostsFeedViewerState(
     var sort by mutableStateOf(initialSort)
     var timeframe by mutableStateOf(initialTimeframe)
 
+    // We keep a reference to the PostsSource in order to invalidate it when changing sort
+    private var postsSource: PostsSource? = null
     var data = Pager(
         config = PagingConfig(pageSize = 100),
         initialKey = "",
@@ -76,8 +80,6 @@ abstract class PostsFeedViewerState(
             }
         }
     ).flow.cachedIn(viewModelScope)
-
-    private var postsSource: PostsSource? = null
 
 
     /**
@@ -103,19 +105,6 @@ abstract class PostsFeedViewerState(
         postsSource?.invalidate()
     }
 
-    fun refresh() {
-        data = Pager(
-            config = PagingConfig(pageSize = 100),
-            initialKey = "",
-            pagingSourceFactory = {
-                PostsSource(repository).also {
-                    postsSource = it
-                }
-            }
-        ).flow.cachedIn(viewModelScope)
-    }
-
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun TopBar(
@@ -126,8 +115,12 @@ abstract class PostsFeedViewerState(
     }
 
     @Composable
-    override fun Content(modifier: Modifier) {
-        SubredditViewer(this, modifier)
+    override fun Content(
+        navController: NavController,
+        selected: MutableIntState,
+        modifier: Modifier
+    ) {
+        PostFeedViewer(this, navController, selected, modifier)
     }
 }
 
@@ -138,7 +131,12 @@ abstract class PostsFeedViewerState(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubredditViewer(state: PostsFeedViewerState, modifier: Modifier = Modifier) {
+fun PostFeedViewer(
+    state: PostFeedViewModel,
+    navController: NavController,
+    selected: MutableIntState,
+    modifier: Modifier = Modifier
+) {
 
     LaunchedEffect(state.sort, state.timeframe) {
         state.updateSort(state.sort, state.timeframe)
@@ -161,7 +159,7 @@ fun SubredditViewer(state: PostsFeedViewerState, modifier: Modifier = Modifier) 
         ) {
             items(count = posts.itemCount, key = posts.itemKey { it.id() }) { index ->
                 posts[index]?.let { post ->
-                    View(post)
+                    View(post, navController, selected)
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -172,7 +170,7 @@ fun SubredditViewer(state: PostsFeedViewerState, modifier: Modifier = Modifier) 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
-    state: PostsFeedViewerState,
+    state: PostFeedViewModel,
     drawerState: DrawerState,
     scrollBehavior: TopAppBarScrollBehavior?
 ) {
@@ -223,7 +221,7 @@ fun TopBar(
 }
 
 @Composable
-fun SortMenu(state: PostsFeedViewerState) {
+fun SortMenu(state: PostFeedViewModel) {
     var sortExpanded = remember { mutableStateOf(false) }
     var timeframeExpanded = remember { mutableStateOf(false) }
     var chosenSort by remember { mutableStateOf(state.sort) }
@@ -254,7 +252,7 @@ fun SortMenu(state: PostsFeedViewerState) {
 
 @Composable
 fun TimeframeMenu(
-    state: PostsFeedViewerState,
+    state: PostFeedViewModel,
     sortExpanded: MutableState<Boolean>,
     expanded: MutableState<Boolean>,
     sort: Sort
