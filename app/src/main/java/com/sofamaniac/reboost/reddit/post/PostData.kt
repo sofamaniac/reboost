@@ -32,43 +32,4 @@ data class PostData(
     val relationship: Relationship,
 )
 
-@Serializable
-data class Relationship(
-    val clicked: Boolean,
-    val visited: Boolean,
-    val saved: Boolean,
-    val liked: Boolean?
-)
 
-
-@Serializable
-data class Score(
-    val ups: Int,
-    val downs: Int,
-    val score: Int,
-    val upvoteRatio: Double,
-    val hideScore: Boolean
-)
-
-@Serializable
-data class Selftext(
-    val selftext: String,
-    val selftextHtml: String
-)
-
-@Serializable
-data class SubredditInfo(
-    val subreddit: String,
-    val subredditId: String,
-    val subredditPrefixed: String,
-    val subredditSubscribers: Int,
-    val subredditType: String
-)
-
-@Serializable
-data class MediaInfo(
-    val media: Media? = null,
-    val mediaEmbed: Map<String, String> = emptyMap(),
-    val mediaMetadata: Map<String, MediaMetadata>? = null,
-    val mediaOnly: Boolean = false,
-)

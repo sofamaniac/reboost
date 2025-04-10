@@ -49,10 +49,7 @@ fun CommentsViewer(
             )
             BottomRow(post, modifier)
             if (post.data.kind == Kind.Self) {
-                Log.d("CommentsViewer", "CommentsViewer: ${post.data.selftext.selftextHtml}")
-                val html = StringEscapeUtils.unescapeHtml4(post.data.selftext.selftextHtml)
-                val text = AnnotatedString.fromHtml(html)
-                Text(text, modifier)
+                Text(post.data.selftext.annotatedString(), modifier)
             }
         }
     }

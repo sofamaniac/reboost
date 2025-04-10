@@ -19,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -54,9 +53,8 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
         }
 
         else -> {
-            val text = AnnotatedString.fromHtml(post.data.selftext.selftextHtml)
             Text(
-                text = text,
+                text = post.data.selftext.annotatedString(),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
