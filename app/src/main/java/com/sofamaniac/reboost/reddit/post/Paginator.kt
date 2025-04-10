@@ -7,8 +7,6 @@ import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.PagedResponse
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.Sort
-import com.sofamaniac.reboost.reddit.Timeframe
 import retrofit2.Response
 
 abstract class PostRepository(

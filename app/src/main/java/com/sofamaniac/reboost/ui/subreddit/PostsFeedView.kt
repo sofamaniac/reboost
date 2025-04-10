@@ -49,10 +49,10 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.sofamaniac.reboost.Tab
-import com.sofamaniac.reboost.reddit.Sort
-import com.sofamaniac.reboost.reddit.Timeframe
+import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.PostRepository
 import com.sofamaniac.reboost.reddit.post.PostsSource
+import com.sofamaniac.reboost.reddit.post.Timeframe
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
 
@@ -95,7 +95,7 @@ abstract class PostFeedViewModel(
      * @param timeframe The new timeframe to apply, or null to clear the timeframe. Defaults to null.
      *
      * @see Sort
-     * @see Timeframe
+     * @see com.sofamaniac.reboost.reddit.post.Timeframe
      */
     fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
         if (this.sort == sort && this.timeframe == timeframe) return

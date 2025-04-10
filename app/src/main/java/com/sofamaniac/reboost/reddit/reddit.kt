@@ -6,6 +6,8 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.reddit.post.Sort as PostSort
+import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
 import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,40 +33,6 @@ val loggingInterceptor = HttpLoggingInterceptor().apply {
 }
 
 
-enum class Sort {
-    Hot,
-    Best,
-    New,
-    Rising,
-    Top,
-    Controversial;
-
-    override fun toString(): String {
-        return super.toString().lowercase()
-    }
-
-    fun isTimeframe(): Boolean {
-        return when (this) {
-            Hot, Best, New, Rising -> false
-            Top, Controversial -> true
-        }
-    }
-}
-
-@Serializable
-enum class Timeframe {
-    Hour,
-    Day,
-    Week,
-    Month,
-    Year,
-    All;
-
-    override fun toString(): String {
-        return super.toString().lowercase()
-    }
-}
-
 private const val API_LIMIT = 100
 
 interface RedditAPIService {
@@ -75,8 +43,8 @@ interface RedditAPIService {
     @GET("user/{user}/saved.json")
     suspend fun getSaved(
         @Path("user") user: String,
-        @Query("sort") sort: Sort = Sort.New,
-        @Query("t") timeframe: Timeframe? = null,
+        @Query("sort") sort: PostSort = PostSort.New,
+        @Query("t") timeframe: PostTimeframe? = null,
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
@@ -84,8 +52,8 @@ interface RedditAPIService {
 
     @GET("{sort}.json")
     suspend fun getHome(
-        @Path("sort") sort: Sort,
-        @Query("t") timeframe: Timeframe? = null,
+        @Path("sort") sort: PostSort,
+        @Query("t") timeframe: PostTimeframe? = null,
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
@@ -134,12 +102,12 @@ interface RedditAPIService {
     @GET("/r/{subreddit}/{sort}.json")
     suspend fun getSubreddit(
         @Path("subreddit") subreddit: String,
-        @Path("sort") sort: Sort = Sort.Best,
+        @Path("sort") sort: PostSort = PostSort.Best,
         @Query("after") after: String? = null,
         @Query("before") before: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
-        @Query("t") timeframe: Timeframe? = null,
+        @Query("t") timeframe: PostTimeframe? = null,
     ): Response<Listing<Post>>
 
     /**
