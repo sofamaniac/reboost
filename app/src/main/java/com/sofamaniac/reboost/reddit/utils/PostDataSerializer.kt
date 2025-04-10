@@ -1,7 +1,5 @@
 package com.sofamaniac.reboost.reddit.utils
 
-import com.sofamaniac.reboost.reddit.Listing
-import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.post.PostData
 import com.sofamaniac.reboost.reddit.post.PostDataFlat
 import kotlinx.serialization.KSerializer
@@ -12,7 +10,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
 
 object PostDataSerializer : KSerializer<PostData> {

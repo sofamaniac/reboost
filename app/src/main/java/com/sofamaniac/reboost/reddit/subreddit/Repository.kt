@@ -6,7 +6,6 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Sort
 import com.sofamaniac.reboost.reddit.Timeframe
 import com.sofamaniac.reboost.reddit.post.PostRepository
-import com.sofamaniac.reboost.reddit.post.SubredditInfo
 
 class SubredditPostsRepository(
     val subreddit: String,

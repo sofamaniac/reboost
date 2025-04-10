@@ -47,8 +47,7 @@ data class CommentData(
     @Serializable(with = InstantAsFloatSerializer::class)
     val created_utc: Instant,
     val depth: Int,
-    // FIXME seems to be null boolean or string ?
-    //val distinguished: Boolean? = null,
+    val distinguished: String? = null,
     val downs: Int,
     @Serializable(with = FalseOrTimestampSerializer::class)
     val edited: Long? = null,

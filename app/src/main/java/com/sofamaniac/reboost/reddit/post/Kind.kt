@@ -1,7 +1,6 @@
 package com.sofamaniac.reboost.reddit.post
 
 import android.util.Log
-import com.sofamaniac.reboost.reddit.Post
 
 enum class Kind {
     Self,

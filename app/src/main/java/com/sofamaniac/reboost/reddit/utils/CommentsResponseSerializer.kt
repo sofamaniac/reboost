@@ -2,10 +2,10 @@ package com.sofamaniac.reboost.reddit.utils
 
 import com.sofamaniac.reboost.reddit.Comment
 import com.sofamaniac.reboost.reddit.CommentsResponse
-import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.ListingData
 import com.sofamaniac.reboost.reddit.More
+import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.Thing
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -15,10 +15,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 
 object CommentsResponseSerializer : KSerializer<CommentsResponse> {
     override val descriptor: SerialDescriptor =

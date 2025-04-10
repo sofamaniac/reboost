@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost.reddit
 
-import android.util.Log
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

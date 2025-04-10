@@ -13,9 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 import androidx.core.graphics.toColorInt
 import com.sofamaniac.reboost.reddit.Flair
+import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 
 
 @Composable
