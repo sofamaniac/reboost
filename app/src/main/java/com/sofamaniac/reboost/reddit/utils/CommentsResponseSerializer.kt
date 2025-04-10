@@ -44,20 +44,14 @@ object CommentsResponseSerializer : KSerializer<CommentsResponse> {
                         element[1]
                     )
 
-                    val (commentListingFinal, more) = if (commentListing.data.children.last() is More) {
+                    val more = if (commentListing.data.children.last() is More) {
                         val last = commentListing.data.children.last() as More
-                        val data = ListingData(
-                            commentListing.data.after,
-                            commentListing.data.dist,
-                            commentListing.data.modHash,
-                            commentListing.data.children.dropLast(1)
-                        )
-                        Pair(Listing<Comment>(data as ListingData<Comment>), last)
+                        last
                     } else {
-                        Pair(commentListing as Listing<Comment>, null)
+                        null
                     }
 
-                    CommentsResponse(postListing, commentListingFinal, more)
+                    CommentsResponse(postListing, commentListing, more)
                 } else {
                     throw SerializationException("Expected 2 elements in the array")
                 }

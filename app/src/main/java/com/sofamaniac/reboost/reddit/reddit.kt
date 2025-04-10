@@ -8,6 +8,7 @@ import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.post.Sort as PostSort
 import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
+import com.sofamaniac.reboost.reddit.comment.Sort as CommentSort
 import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -57,6 +58,7 @@ interface RedditAPIService {
         @Query("after") after: String? = null,
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
+        @Query("sr_detail") srDetail: Boolean = true,
     ): Response<Listing<Post>>
 
     @GET("/r/{subreddit}/about")
@@ -115,23 +117,36 @@ interface RedditAPIService {
      *
      * @param subreddit The name of the subreddit where the post is located.
      * @param id The ID of the post.
+     * @param comment focal point of the returned view
+     * @param context Number of parents to be shown when [comment] is set
+     * @param depth is the maximum depth of subtrees in the thread
      */
     @GET("/r/{subreddit}/comments/{id}.json")
     suspend fun getComments(
         @Path("subreddit") subreddit: String,
         @Path("id") id: String,
-        @Query("after") after: String? = null,
-        @Query("before") before: String? = null,
-        @Query("count") count: Int = 0,
+        @Query("showedits") showEdits: Boolean = false,
+        @Query("showmore") showMore: Boolean = false,
+        @Query("showmedia") showMedia: Boolean = false,
+        @Query("showtitle") showTitle: Boolean = false,
+        @Query("sort") sort: CommentSort = CommentSort.Best,
+        @Query("comment") comment: String? = null,
+        @Query("context") context: Int? = 0,
+        @Query("depth") depth: Int? = null,
         @Query("limit") limit: Int = API_LIMIT,
-    ): Response<Array<Listing<Thing>>>
+    ): Response<CommentsResponse>
 
     @GET("{permalink}.json")
     suspend fun getPostFromPermalink(
         @Path(value = "permalink", encoded = true) permalink: String,
-        @Query("after") after: String? = null,
-        @Query("before") before: String? = null,
-        @Query("count") count: Int = 0,
+        @Query("showedits") showEdits: Boolean = false,
+        @Query("showmore") showMore: Boolean = false,
+        @Query("showmedia") showMedia: Boolean = false,
+        @Query("showtitle") showTitle: Boolean = false,
+        @Query("sort") sort: CommentSort = CommentSort.Best,
+        @Query("comment") comment: String? = null,
+        @Query("context") context: Int? = 0,
+        @Query("depth") depth: Int? = null,
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Array<Listing<Thing>>>
 }
@@ -139,7 +154,8 @@ interface RedditAPIService {
 @Serializable(with = CommentsResponseSerializer::class)
 data class CommentsResponse(
     val post: Listing<Post>,
-    val comments: Listing<Comment>,
+    /** Either [Comment] or [More] */
+    val comments: Listing<Thing>,
     val more: More? = null,
 )
 

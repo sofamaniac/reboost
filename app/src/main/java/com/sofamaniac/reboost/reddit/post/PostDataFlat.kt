@@ -7,8 +7,10 @@ import com.sofamaniac.reboost.reddit.Thumbnail
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
 import kotlinx.datetime.Instant
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 
 @Serializable
 data class PostDataFlat(
@@ -294,16 +296,45 @@ data class RedditVideo(
     val transcoding_status: String = "",
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class MediaMetadata(
-    @SerialName("e") val e: String? = null,
+@JsonClassDiscriminator("e")
+sealed class MediaMetadata()
+
+@Serializable
+@SerialName("Image")
+data class MediaPreviewImage(
     @SerialName("id") val id: String? = null,
+    /** Something like "image/jpeg" */
     @SerialName("m") val m: String? = null,
-    @SerialName("p") val p: List<MediaPreview>? = null,
+    @SerialName("p") val preview: List<MediaPreview> = emptyList(),
+    /** Source ? */
     @SerialName("s") val s: MediaPreview? = null,
-    /** "failed" or "success", the other field are present only if "success" */
-    @SerialName("status") val status: String
+    /** Original ? */
+    @SerialName("o") val o: List<MediaPreview> = emptyList(),
+) : MediaMetadata()
+
+@Serializable
+@SerialName("AnimatedImage")
+data class MediaPreviewGif(
+    @SerialName("id") val id: String? = null,
+    /** Something like "image/jpeg" */
+    @SerialName("m") val m: String? = null,
+    @SerialName("p") val preview: List<MediaPreview> = emptyList(),
+    /** Source ? */
+    @SerialName("s") val s: MediaPreviewGifSource? = null,
+    /** Original ? */
+    @SerialName("o") val o: List<MediaPreview> = emptyList(),
+) : MediaMetadata()
+
+@Serializable
+data class MediaPreviewGifSource(
+    @SerialName("gif") val gifUrl: String = "",
+    @SerialName("x") val width: Int = 0,
+    @SerialName("y") val height: Int = 0,
+    @SerialName("mp4") val mp4Url: String = "",
 )
+
 
 @Serializable
 data class MediaPreview(
