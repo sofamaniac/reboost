@@ -55,8 +55,8 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
             .aspectRatio(x.toFloat() / y.toFloat()),
         contentScale = ContentScale.FillWidth,
     ) {
-        if (post.data.thumbnail != null) {
-            it.thumbnail(Glide.with(context).load(post.data.thumbnail))
+        if (post.data.thumbnail.url.isNotEmpty()) {
+            it.thumbnail(Glide.with(context).load(post.data.thumbnail.url))
         }
         it.placeholder(Color.Gray.toArgb().toDrawable())
         it.load(url)

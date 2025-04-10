@@ -16,6 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // For markdown compose
+        maven(url = "https://jitpack.io")
+
     }
 }
 

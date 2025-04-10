@@ -11,8 +11,7 @@ data class Selftext(
     private val selftext: String,
     private val selftextHtml: String
 ) {
-    fun annotatedString(): AnnotatedString {
-        val html = StringEscapeUtils.unescapeHtml4(selftextHtml)
-        return AnnotatedString.fromHtml(html)
+    fun html(): String {
+        return StringEscapeUtils.unescapeHtml4(selftextHtml)
     }
 }

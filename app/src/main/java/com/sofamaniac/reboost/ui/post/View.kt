@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -28,6 +29,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.Flair
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -53,13 +55,15 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
         }
 
         else -> {
-            Text(
-                text = post.data.selftext.annotatedString(),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 6,
-                overflow = TextOverflow.Ellipsis,
-                modifier = modifier,
-            )
+            if (post.data.selftext.html().isNotEmpty()) {
+                MarkdownText(
+                    markdown = post.data.selftext.html(),
+                    maxLines = 6,
+                    modifier = modifier,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
     }
 }
@@ -74,15 +78,22 @@ fun PostInfo(
     enablePreview: Boolean = true,
     titleClickable: Boolean = false
 ) {
-    Row(modifier = modifier.padding(start = 2.dp)) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 2.dp, end = 2.dp),
+        verticalAlignment = Alignment.Top
+    ) {
         Column(
-            modifier = if (enablePreview) modifier.fillMaxWidth(fraction = 0.75f) else modifier,
+            modifier = modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            val titleModifier =
+                if (enablePreview) modifier.fillMaxWidth(fraction = 0.75f) else modifier
             Text(
                 post.data.title,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.clickable(
+                modifier = titleModifier.clickable(
                     enabled = titleClickable,
                     onClick = {
                         Log.d("PostInfo", "PostInfo: ${post.data.permalink}")
@@ -97,10 +108,10 @@ fun PostInfo(
         if (enablePreview) {
             // TODO make clickable
             GlideImage(
-                model = post.data.thumbnail,
+                model = post.data.thumbnail.url,
                 contentDescription = "Thumbnail",
                 modifier = modifier
-                    .fillMaxSize()
+                    .fillMaxWidth(fraction = 0.25f)
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop

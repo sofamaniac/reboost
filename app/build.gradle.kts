@@ -105,9 +105,11 @@ dependencies {
     // More material icons
     implementation(libs.androidx.material.icons.extended)
 
-
     // Video player
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
+
+    // Render markdown
+    implementation(libs.markdown.compose) // or latest
 }

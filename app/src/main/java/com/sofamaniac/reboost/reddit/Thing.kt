@@ -12,16 +12,19 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("kind")
-sealed class Thing
+sealed class Thing {
+    abstract val data: Any
+}
 
 @Serializable
 @SerialName("t3")
-data class Post(@Serializable(with = PostDataSerializer::class) val data: PostData) : Thing()
+data class Post(@Serializable(with = PostDataSerializer::class) override val data: PostData) :
+    Thing()
 
 @Serializable
 @SerialName("Listing")
 data class Listing<T : Thing>(
-    val data: ListingData<T>
+    override val data: ListingData<T>
 ) : Thing(), Iterable<T> {
     override fun iterator(): Iterator<T> {
         return data.children.iterator()
@@ -32,22 +35,26 @@ data class Listing<T : Thing>(
     }
 }
 
+fun emptyListing(): Listing<Thing> {
+    return Listing(data = ListingData())
+}
+
 @Serializable
 @SerialName("t5")
-data class Subreddit(val data: SubredditData = SubredditData()) :
+data class Subreddit(override val data: SubredditData = SubredditData()) :
     Thing()
 
 @Serializable
 @SerialName("t1")
-data class Comment(val data: CommentData) : Thing()
+data class Comment(override val data: CommentData) : Thing()
 
 @Serializable
 @SerialName("t2")
-data class User(val data: String) : Thing()
+data class User(override val data: String) : Thing()
 
 @Serializable
 @SerialName("more")
-data class More(val data: MoreData) : Thing()
+data class More(override val data: MoreData) : Thing()
 
 @Serializable
 data class MoreData(
@@ -58,6 +65,3 @@ data class MoreData(
     val depth: Int,
     val children: List<String>
 )
-
-
-

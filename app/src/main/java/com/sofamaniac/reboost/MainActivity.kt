@@ -234,6 +234,7 @@ fun NavigationGraph(
     modifier: Modifier = Modifier
 ) {
     val selected = remember { mutableIntStateOf(0) }
+    val home by remember { mutableStateOf(HomeView()) }
     NavHost(
         navController = navController,
         startDestination = Home,
@@ -241,7 +242,8 @@ fun NavigationGraph(
     ) {
         composable<Home> {
             selected.intValue = 0
-            HomeViewer(navController, selected)
+            //HomeViewer(navController, selected)
+            HomeViewer(navController, selected, home)
         }
         composable<Subscriptions> {
             selected.intValue = 2
