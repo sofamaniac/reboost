@@ -6,6 +6,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -147,7 +148,7 @@ interface RedditAPIService {
      * @param subreddit The name of the subreddit where the post is located.
      * @param id The ID of the post.
      */
-    @GET("/r/{subreddit}/comments/{id}")
+    @GET("/r/{subreddit}/comments/{id}.json")
     suspend fun getComments(
         @Path("subreddit") subreddit: String,
         @Path("id") id: String,
@@ -156,7 +157,23 @@ interface RedditAPIService {
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
     ): Response<Array<Listing<Thing>>>
+
+    @GET("{permalink}.json")
+    suspend fun getPostFromPermalink(
+        @Path(value = "permalink", encoded = true) permalink: String,
+        @Query("after") after: String? = null,
+        @Query("before") before: String? = null,
+        @Query("count") count: Int = 0,
+        @Query("limit") limit: Int = API_LIMIT,
+    ): Response<Array<Listing<Thing>>>
 }
+
+@Serializable(with = CommentsResponseSerializer::class)
+data class CommentsResponse(
+    val post: Listing<Post>,
+    val comments: Listing<Comment>,
+    val more: More? = null,
+)
 
 @Serializable
 data class Identity(

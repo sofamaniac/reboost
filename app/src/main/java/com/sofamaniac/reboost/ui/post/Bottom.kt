@@ -39,7 +39,7 @@ import kotlinx.serialization.json.Json
 private fun UpButton(post: Post) {
     val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
-    val likes = remember { mutableStateOf(post.data.likes) }
+    val likes = remember { mutableStateOf(post.data.relationship.liked) }
     val buttonColor = animateColorAsState(
         targetValue = if (likes.value == true) Color.Red else Color.Gray,
         label = "button color"
@@ -62,18 +62,18 @@ private fun DownButton(post: Post) {
     LocalContext.current
     val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
-    val likes = remember { mutableStateOf(post.data.likes) }
+    var likes by remember { mutableStateOf(post.data.relationship.liked) }
     val buttonColor = animateColorAsState(
-        targetValue = if (likes.value == false) Color.Blue else Color.Gray,
+        targetValue = if (likes == false) Color.Blue else Color.Gray,
         label = "button color"
     )
     IconButton(onClick = {
-        if (likes.value == false) {
+        if (likes == false) {
             scope.launch { reddit.vote(post.data.name, 0) }
-            likes.value = null
+            likes = null
         } else {
             scope.launch { reddit.vote(post.data.name, 1) }
-            likes.value = false
+            likes = false
         }
     }) {
         Icon(Icons.Filled.ThumbDown, "upvote", tint = buttonColor.value)
@@ -85,20 +85,20 @@ private fun SavedButton(post: Post) {
     LocalContext.current
     val reddit = RedditAPI.service
     val scope = rememberCoroutineScope()
-    val saved = remember { mutableStateOf(post.data.saved) }
+    var saved by remember { mutableStateOf(post.data.relationship.saved) }
     val buttonColor = animateColorAsState(
-        targetValue = if (saved.value == true) Color.Yellow else Color.Gray,
+        targetValue = if (saved == true) Color.Yellow else Color.Gray,
         label = "button color"
     )
     IconButton(onClick = {
-        if (saved.value) {
+        if (saved) {
             scope.launch { reddit.unsave(post.data.name) }
         } else {
             scope.launch { reddit.save(post.data.name) }
         }
-        saved.value = !saved.value
+        saved = !saved
     }) {
-        if (saved.value) {
+        if (saved) {
             Icon(Icons.Filled.Bookmark, "save", tint = buttonColor.value)
         } else {
             Icon(Icons.Outlined.BookmarkBorder, "save", tint = buttonColor.value)

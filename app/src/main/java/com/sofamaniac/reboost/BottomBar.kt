@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.sofamaniac.reboost.reddit.AuthorInfo
+import com.sofamaniac.reboost.reddit.MyAuthorInfo
 
 @Composable
 fun BottomBar(

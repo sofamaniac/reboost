@@ -21,11 +21,12 @@ import com.sofamaniac.reboost.reddit.Post
 @OptIn(UnstableApi::class)
 @Composable
 fun PostVideo(post: Post, modifier: Modifier = Modifier) {
-    if (post.data.media != null && post.data.media.reddit_video != null) {
+    val media = post.data.media.media
+    if (media != null && media.reddit_video != null) {
         val context = LocalContext.current
-        val mediaItem = MediaItem.fromUri(post.data.media.reddit_video.fallback_url)
-        val width = post.data.media.reddit_video.width
-        val height = post.data.media.reddit_video.height
+        val mediaItem = MediaItem.fromUri(media.reddit_video.fallback_url)
+        val width = media.reddit_video.width
+        val height = media.reddit_video.height
         val exoPlayer = remember {
             ExoPlayer.Builder(context).build().apply {
                 // Set MediaSource to ExoPlayer

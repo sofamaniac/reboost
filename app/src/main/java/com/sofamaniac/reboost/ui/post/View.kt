@@ -25,6 +25,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -40,8 +41,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun PostBody(post: Post, modifier: Modifier = Modifier) {
-    when (post.kind()) {
+internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
+    when (post.data.kind) {
         Kind.Image -> {
             PostImage(post)
         }
@@ -61,8 +62,9 @@ private fun PostBody(post: Post, modifier: Modifier = Modifier) {
         }
 
         else -> {
+            val text = AnnotatedString.fromHtml(post.data.selftext.selftextHtml)
             Text(
-                post.data.selftext,
+                text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
@@ -75,14 +77,37 @@ private fun PostBody(post: Post, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun PostTitle(post: Post, modifier: Modifier = Modifier, enablePreview: Boolean = true) {
-    val titleModifier =
-        if (enablePreview && post.thumbnail() != null) modifier.fillMaxSize(fraction = 0.75f) else modifier
-    Row(modifier = modifier) {
-        Text(post.data.title, style = MaterialTheme.typography.bodyLarge, modifier = titleModifier)
-        if (enablePreview && post.thumbnail() != null) {
+fun PostInfo(
+    post: Post,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    enablePreview: Boolean = true,
+    titleClickable: Boolean = false
+) {
+    Row(modifier = modifier.padding(start = 2.dp)) {
+        Column(
+            modifier = if (enablePreview) modifier.fillMaxWidth(fraction = 0.75f) else modifier,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                post.data.title,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.clickable(
+                    enabled = titleClickable,
+                    onClick = {
+                        Log.d("PostInfo", "PostInfo: ${post.data.permalink}")
+                        navController.navigate(com.sofamaniac.reboost.Post(post.data.permalink))
+                    }
+                )
+            )
+            // TODO make clickable
+            Flair(post.data.linkFlair)
+            Text(post.scoreString(), style = MaterialTheme.typography.bodyMedium)
+        }
+        if (enablePreview) {
+            // TODO make clickable
             GlideImage(
-                model = post.thumbnail(),
+                model = post.data.thumbnail,
                 contentDescription = "Thumbnail",
                 modifier = modifier
                     .fillMaxSize()
@@ -98,17 +123,18 @@ fun PostTitle(post: Post, modifier: Modifier = Modifier, enablePreview: Boolean 
 fun Post.scoreString(): AnnotatedString {
     val scoreStyle =
         MaterialTheme.typography.titleMedium.toSpanStyle()
+    val score = data.score.score
     return buildAnnotatedString {
         withStyle(style = scoreStyle) {
-            if (score() > 10_000) {
-                append((score() / 1000).toString())
+            if (score > 10_000) {
+                append((score / 1000).toString())
                 append("k")
             } else {
-                append(score().toString())
+                append(score.toString())
             }
         }
         append(" · ")
-        append("${data.num_comments} comments")
+        append("${data.numComments} comments")
     }
 }
 
@@ -134,30 +160,14 @@ fun View(
             showSubredditIcon = showSubredditIcon,
             modifier = modifier
         )
-        val scope = rememberCoroutineScope()
-        Row(modifier = modifier.padding(start = 2.dp)) {
-            val enablePreview = post.thumbnail() != null && post.kind() == Kind.Link
-
-            Column(
-                modifier = if (enablePreview) modifier.fillMaxWidth(fraction = 0.75f) else modifier,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(post.data.title, style = MaterialTheme.typography.bodyLarge)
-                Flair(post.linkFlair())
-                Text(post.scoreString(), style = MaterialTheme.typography.bodyMedium)
-            }
-            if (post.kind() == Kind.Link && post.thumbnail() != null) {
-                GlideImage(
-                    model = post.thumbnail(),
-                    contentDescription = "Thumbnail",
-                    modifier = modifier
-                        .fillMaxSize()
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
+        val enablePreview = post.data.thumbnail.url.isNotEmpty() && post.data.kind == Kind.Link
+        PostInfo(
+            post,
+            navController,
+            modifier = modifier,
+            enablePreview = enablePreview,
+            titleClickable = true
+        )
         PostBody(post)
         BottomRow(post, modifier)
     }

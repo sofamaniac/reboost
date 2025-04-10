@@ -35,6 +35,7 @@ import com.sofamaniac.reboost.Profile
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.formatElapsedTimeLocalized
 
 
@@ -44,14 +45,14 @@ fun PostHeader(
     post: Post,
     navController: NavController,
     selected: MutableIntState,
+    modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
-    modifier: Modifier = Modifier
 ) {
     LocalContext.current
     var subreddit by remember { mutableStateOf(Subreddit()) }
     // TODO move to fetch earlier than when needed
     LaunchedEffect(subreddit) {
-        val response = RedditAPI.service.getSubInfo(post.data.subreddit)
+        val response = RedditAPI.service.getSubInfo(post.data.subreddit.subreddit)
         if (response.isSuccessful) {
             subreddit = response.body()!!
         }
@@ -80,11 +81,11 @@ fun PostHeader(
                     tag = "Subreddit",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(com.sofamaniac.reboost.Subreddit(post.data.subreddit))
+                        navController.navigate(com.sofamaniac.reboost.Subreddit(post.data.subreddit.subreddit))
                         selected.intValue = 2
                     })
             ) {
-                append(post.data.subreddit)
+                append(post.data.subreddit.subreddit)
             }
             append(" · ")
             withLink(
@@ -92,18 +93,18 @@ fun PostHeader(
                     tag = "User",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(Profile(post.data.author!!))
+                        navController.navigate(Profile(post.data.author.username))
                         selected.intValue = 5
                     })
             ) {
-                append(post.data.author!!)
+                append(post.data.author.username)
             }
-            if (!post.data.domain.contains("reddit") && !post.data.domain.endsWith("redd.it") && !post.data.is_self) {
+            if (!post.data.domain.contains("reddit") && !post.data.domain.endsWith("redd.it") && post.data.kind != Kind.Self) {
                 append(" · ")
                 append(post.data.domain)
             }
             append(" · ")
-            append(formatElapsedTimeLocalized(post.data.created_utc))
+            append(formatElapsedTimeLocalized(post.data.createdAt))
         }
         Text(text, style = MaterialTheme.typography.bodySmall)
         // TODO: take last edit into account

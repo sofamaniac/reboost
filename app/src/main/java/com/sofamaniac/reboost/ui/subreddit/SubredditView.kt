@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.BottomBar
+import com.sofamaniac.reboost.reddit.post.SubredditInfo
 import com.sofamaniac.reboost.reddit.subreddit.SubredditPostsRepository
 
 class SubredditView(val subreddit: String) : PostFeedViewModel(

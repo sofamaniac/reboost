@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost
 
+import android.os.Bundle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Email
@@ -9,11 +10,14 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.sofamaniac.reboost.reddit.AuthorInfo
+import com.sofamaniac.reboost.reddit.post.SubredditInfo
 import com.sofamaniac.reboost.ui.subreddit.HomeView
 import com.sofamaniac.reboost.ui.subreddit.SavedView
 import com.sofamaniac.reboost.ui.subreddit.SubredditView
 import com.sofamaniac.reboost.ui.subredditList.SubscriptionState
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 enum class RouteType {
     Home,
@@ -33,7 +37,7 @@ object Home : Route {
 }
 
 @Serializable
-class Profile(val username: String) : Route {
+class Profile(val author: String) : Route {
     override val route: String = RouteType.Profile.name
     override val title: String = "Profile"
 }
@@ -69,7 +73,7 @@ class Subreddit(val subreddit: String) : Route {
 }
 
 @Serializable
-class Post(val post: com.sofamaniac.reboost.reddit.Post) : Route {
+class Post(val post_permalink: String) : Route {
     override val route: String = RouteType.Post.name
     override val title: String = "Post"
 }

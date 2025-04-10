@@ -43,7 +43,7 @@ abstract class CommentRepository(
     open suspend fun getComments(after: String): PagedResponse<Comment> {
         return makeRequest {
             RedditAPI.service.getComments(
-                subreddit = post.data.subreddit,
+                subreddit = post.data.subreddit.subreddit,
                 id = post.data.id,
                 after = after
             )

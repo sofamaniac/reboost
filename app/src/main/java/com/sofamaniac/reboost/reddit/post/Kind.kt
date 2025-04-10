@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost.reddit.post
 
+import android.util.Log
 import com.sofamaniac.reboost.reddit.Post
 
 enum class Kind {
@@ -11,20 +12,23 @@ enum class Kind {
     Link
 }
 
-fun getKind(post: Post): Kind {
-    val kind = if (post.data.is_self) Kind.Self
-    else if (post.data.is_video) Kind.Video
-    else if (post.data.isGallery) Kind.Gallery
-    else if (post.data.is_meta) Kind.Meta
+fun getKind(post: PostDataFlat): Kind {
+    val kind = if (post.is_self) Kind.Self
+    else if (post.is_video) Kind.Video
+    else if (post.isGallery) Kind.Gallery
+    else if (post.is_meta) Kind.Meta
     else null
 
     if (kind != null) return kind
 
-    return when (post.data.post_hint) {
+    return when (post.post_hint) {
         "image" -> Kind.Image
         "rich:video", "hosted:video" -> Kind.Video
         "link" -> Kind.Link
-        else -> Kind.Self
+        else -> {
+            Log.d("getKind", "Unknown post hint: $post")
+            Kind.Self
+        }
     }
 
 }

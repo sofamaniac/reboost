@@ -72,6 +72,8 @@ import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.reddit.post.SubredditInfo
+import com.sofamaniac.reboost.ui.post.CommentsViewer
 import com.sofamaniac.reboost.ui.subreddit.HomeView
 import com.sofamaniac.reboost.ui.subreddit.HomeViewer
 import com.sofamaniac.reboost.ui.subreddit.SubredditViewer
@@ -278,11 +280,12 @@ fun NavigationGraph(
             PostFeedViewer(HomeView(), navController, selected)
         }
         composable<Inbox> {
+            selected.intValue = 3
             SubredditViewer(
                 navController, selected,
                 viewModel {
                     SubredditView(
-                        "arknuts"
+                        "artknights"
                     )
                 }
             )
@@ -303,8 +306,19 @@ fun NavigationGraph(
             selected.intValue = 4
             SavedViewer(navController, selected)
         }
-//        composable<Post> { navBackStackEntry ->
-//            val post = navBackStackEntry.toRoute<Post>().post
-//        }
+        composable<Post> { navBackStackEntry ->
+            val post_permalink = navBackStackEntry.toRoute<Post>().post_permalink
+            Log.d("NavigationGraph", "post_permalink: $post_permalink")
+            var post by remember { mutableStateOf<com.sofamaniac.reboost.reddit.Post?>(null) }
+            LaunchedEffect(post_permalink) {
+                val temp =
+                    RedditAPI.service.getPostFromPermalink(post_permalink).body()?.firstOrNull()
+                        ?.first()
+                post = temp as com.sofamaniac.reboost.reddit.Post?
+            }
+            if (post != null) {
+                CommentsViewer(navController, selected, post!!)
+            }
+        }
     }
 }
