@@ -1,5 +1,6 @@
 import java.util.Properties
 
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -61,7 +62,17 @@ android {
 
 }
 
+
+// Avoid duplicate annotations https://stackoverflow.com/a/58909363
+configurations {
+    all {
+        exclude(group = "org.jetbrains", module = "annotations-java5")
+    }
+}
+
+
 dependencies {
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -111,5 +122,16 @@ dependencies {
     implementation(libs.androidx.media3.ui)
 
     // Render markdown
-    implementation(libs.markdown.compose) // or latest
+    implementation(libs.markwon.core) // Markwon core
+    implementation(libs.markwon.html) // Optional: HTML support
+    implementation(libs.markwon.image.glide) // Optional: Image support
+    implementation(libs.markwon.linkify) // Optional: Link support
+    implementation(libs.markwon.syntax.highlight) // Optional: Syntax highlighting (code blocks)
+    implementation(libs.markwon.tables)
+    implementation(libs.markwon.tasklist)
+    implementation(libs.markwon.strikethrough)
+    //implementation("io.noties.markwon:recycler:4.6.2") // Optional: If using RecyclerView
+    //implementation("org.commonmark:commonmark:0.21.0") // Required for syntax highlighting
+    //implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0") // Optional: Support for tables
+    //implementation("org.commonmark:commonmark-ext-heading-anchor:0.21.0") // Optional: Support for heading anchor
 }

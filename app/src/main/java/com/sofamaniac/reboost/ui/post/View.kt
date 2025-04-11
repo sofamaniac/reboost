@@ -29,7 +29,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.Flair
-import dev.jeziellago.compose.markdowntext.MarkdownText
+import com.sofamaniac.reboost.ui.SimpleMarkdown
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -56,12 +56,10 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
 
         else -> {
             if (post.data.selftext.html().isNotEmpty()) {
-                MarkdownText(
+                SimpleMarkdown(
                     markdown = post.data.selftext.html(),
                     maxLines = 6,
                     modifier = modifier,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -96,7 +94,6 @@ fun PostInfo(
                 modifier = titleModifier.clickable(
                     enabled = titleClickable,
                     onClick = {
-                        Log.d("PostInfo", "PostInfo: ${post.data.permalink}")
                         navController.navigate(com.sofamaniac.reboost.Post(post.data.permalink))
                     }
                 )

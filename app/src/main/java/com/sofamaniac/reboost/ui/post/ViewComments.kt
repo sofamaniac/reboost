@@ -45,7 +45,7 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.emptyListing
 import com.sofamaniac.reboost.reddit.post.Kind
-import dev.jeziellago.compose.markdowntext.MarkdownText
+import com.sofamaniac.reboost.ui.SimpleMarkdown
 import kotlinx.coroutines.launch
 
 
@@ -77,11 +77,9 @@ fun PostView(
             titleClickable = false
         )
         if (post.data.kind == Kind.Self) {
-            MarkdownText(
+            SimpleMarkdown(
                 post.data.selftext.html(),
                 modifier,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground
             )
         }
         BottomRow(post, modifier)
@@ -109,12 +107,9 @@ fun CommentView(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
         ) {
-            MarkdownText(
+            SimpleMarkdown(
                 comment.data.body,
                 modifier,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                linkColor = Color.Blue
             )
             HorizontalDivider()
             if (comment.data.replies != null) {
