@@ -37,6 +37,7 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Subreddit
 import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.formatElapsedTimeLocalized
+import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -48,15 +49,6 @@ fun PostHeader(
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
 ) {
-    LocalContext.current
-    var subreddit by remember { mutableStateOf(Subreddit()) }
-    // TODO move to fetch earlier than when needed
-    LaunchedEffect(subreddit) {
-        val response = RedditAPI.service.getSubInfo(post.data.subreddit.subreddit)
-        if (response.isSuccessful) {
-            subreddit = response.body()!!
-        }
-    }
     Row(
         modifier = modifier
             .fillMaxWidth(),
@@ -64,16 +56,22 @@ fun PostHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showSubredditIcon) {
-            GlideImage(
-                model = subreddit.data.icon_img,
-                contentDescription = "${subreddit.data.display_name} icon",
-                contentScale = ContentScale.Crop,            // crop the image if it's not a square
+            SubredditIcon(
+                post.data.subreddit.subreddit,
                 modifier = modifier
                     .size(24.dp)
-                    .clip(CircleShape)                       // clip to the circle shape
-            ) {
-                it.placeholder(Color.Red.toArgb().toDrawable())
-            }
+                    .clip(CircleShape)
+            )
+//            GlideImage(
+//                model = subreddit.data.icon_img,
+//                contentDescription = "${subreddit.data.display_name} icon",
+//                contentScale = ContentScale.Crop,            // crop the image if it's not a square
+//                modifier = modifier
+//                    .size(24.dp)
+//                    .clip(CircleShape)                       // clip to the circle shape
+//            ) {
+//                it.placeholder(Color.Red.toArgb().toDrawable())
+//            }
         }
         val text = buildAnnotatedString {
             withLink(
@@ -81,11 +79,11 @@ fun PostHeader(
                     tag = "Subreddit",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(com.sofamaniac.reboost.Subreddit(post.data.subreddit.subreddit))
+                        navController.navigate(com.sofamaniac.reboost.Subreddit(post.data.subreddit.subreddit.name))
                         selected.intValue = 2
                     })
             ) {
-                append(post.data.subreddit.subreddit)
+                append(post.data.subreddit.subreddit.name)
             }
             append(" · ")
             withLink(

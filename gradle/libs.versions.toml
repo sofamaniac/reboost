@@ -23,6 +23,7 @@ retrofit = "2.9.0"
 kotlinxSerializationJson = "1.6.3"
 retrofit2KotlinxSerializationConverter = "1.0.0"
 markwon = "4.6.2"
+room = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,10 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }

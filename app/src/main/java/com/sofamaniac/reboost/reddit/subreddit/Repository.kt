@@ -8,7 +8,7 @@ import com.sofamaniac.reboost.reddit.post.PostRepository
 import com.sofamaniac.reboost.reddit.post.Timeframe
 
 class SubredditPostsRepository(
-    val subreddit: String,
+    val subreddit: SubredditName,
     sort: Sort = Sort.Best,
     timeframe: Timeframe? = null
 ) : PostRepository(sort, timeframe) {

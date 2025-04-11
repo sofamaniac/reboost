@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -131,31 +132,23 @@ fun CommentList(comments: Listing<Comment>, modifier: Modifier = Modifier, depth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentListRoot(
-    post: Post,
+    viewModel: CommentsViewModel,
     navController: NavController,
     selected: MutableIntState,
     modifier: Modifier = Modifier
 ) {
-    var comments by remember { mutableStateOf<Listing<Thing>>(emptyListing()) }
-    var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val refresh = suspend {
-        isRefreshing = true
-        comments = RedditAPI.service.getComments(post.data.subreddit.subreddit, post.data.id)
-            .body()?.comments ?: comments
-        isRefreshing = false
+    LaunchedEffect(viewModel) {
+        viewModel.refresh()
     }
-    LaunchedEffect(comments, isRefreshing) {
-        refresh()
-    }
-    PullToRefreshBox(isRefreshing = isRefreshing, onRefresh = {
-        scope.launch { refresh() }
+    PullToRefreshBox(isRefreshing = viewModel.isRefreshing, onRefresh = {
+        scope.launch { viewModel.refresh() }
     }) {
-        LazyColumn(modifier = modifier.fillMaxSize()) {
+        LazyColumn(modifier = modifier.fillMaxSize(), state = viewModel.listState) {
             item {
                 // PostView takes only what it needs
                 PostView(
-                    post = post,
+                    post = viewModel.post,
                     navController = navController,
                     selected = selected,
                     modifier = Modifier.padding(horizontal = 8.dp)
@@ -163,8 +156,8 @@ fun CommentListRoot(
 
                 HorizontalDivider()
             }
-            items(comments.data.children.size) { index ->
-                val comment = comments.data.children[index]
+            items(viewModel.comments.data.children.size) { index ->
+                val comment = viewModel.comments.data.children[index]
                 when (comment) {
                     is Comment -> CommentView(comment)
                     is More -> MoreViewer(comment)
@@ -189,15 +182,29 @@ fun CommentsViewer(
     post: Post,
     modifier: Modifier = Modifier
 ) {
+    val viewModel = remember { CommentsViewModel(post) }
     Scaffold { innerPadding ->
         val modifier = Modifier.padding(innerPadding)
 
         CommentListRoot(
-            post = post,
+            viewModel = viewModel,
             navController = navController,
             selected = selected,
             modifier = modifier
                 .fillMaxWidth()
         )
+    }
+}
+
+data class CommentsViewModel(val post: Post) {
+    var comments by mutableStateOf<Listing<Thing>>(emptyListing())
+    var isRefreshing by mutableStateOf(false)
+    var listState by mutableStateOf(LazyListState())
+
+    suspend fun refresh() {
+        isRefreshing = true
+        comments = RedditAPI.service.getComments(post.data.subreddit.subreddit, post.data.id)
+            .body()?.comments ?: comments
+        isRefreshing = false
     }
 }

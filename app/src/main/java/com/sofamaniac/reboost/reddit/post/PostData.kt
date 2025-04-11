@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PostData(
-    val id: String,
-    val name: String,
+    val id: PostId,
+    val name: PostFullname,
     val url: String,
     val domain: String,
     val permalink: String,

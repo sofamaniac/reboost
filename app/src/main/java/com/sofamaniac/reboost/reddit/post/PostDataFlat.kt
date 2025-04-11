@@ -4,6 +4,8 @@ import com.sofamaniac.reboost.reddit.AuthorInfo
 import com.sofamaniac.reboost.reddit.Flair
 import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 import com.sofamaniac.reboost.reddit.Thumbnail
+import com.sofamaniac.reboost.reddit.subreddit.SubredditId
+import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
 import kotlinx.datetime.Instant
@@ -12,11 +14,24 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
 
+/** ID 36 of a post */
+@Serializable
+@JvmInline
+value class PostId(val id: String)
+
+/**
+ * The string "t3_ID36" of a post
+ * @see PostId
+ */
+@Serializable
+@JvmInline
+value class PostFullname(val id: String)
+
 @Serializable
 data class PostDataFlat(
 
-    @SerialName("id") val id: String = "",
-    @SerialName("name") val fullname: String = "",
+    @SerialName("id") val id: PostId,
+    @SerialName("name") val fullname: PostFullname,
     @SerialName("url") val url: String = "",
     @SerialName("title") val title: String = "",
     @SerialName("suggested_sort") val suggested_sort: String? = null,
@@ -50,8 +65,8 @@ data class PostDataFlat(
     @SerialName("banned_by") val banned_by: String? = null,
 
     // Subreddit info
-    @SerialName("subreddit") val subreddit: String = "",
-    @SerialName("subreddit_id") val subreddit_id: String = "",
+    @SerialName("subreddit") val subreddit: SubredditName,
+    @SerialName("subreddit_id") val subreddit_id: SubredditId,
     @SerialName("subreddit_name_prefixed") val subreddit_name_prefixed: String = "",
     @SerialName("subreddit_subscribers") val subreddit_subscribers: Int = 0,
     @SerialName("subreddit_type") val subreddit_type: String = "",

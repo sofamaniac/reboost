@@ -6,6 +6,10 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.StoreManager
+import com.sofamaniac.reboost.reddit.comment.CommentAPI
+import com.sofamaniac.reboost.reddit.post.PostAPI
+import com.sofamaniac.reboost.reddit.post.PostId
+import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.post.Sort as PostSort
 import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
 import com.sofamaniac.reboost.reddit.comment.Sort as CommentSort
@@ -36,7 +40,7 @@ val loggingInterceptor = HttpLoggingInterceptor().apply {
 
 private const val API_LIMIT = 100
 
-interface RedditAPIService {
+interface RedditAPIService : CommentAPI, PostAPI {
 
     @GET("api/v1/me.json")
     suspend fun getIdentity(): Response<Identity>
@@ -62,36 +66,10 @@ interface RedditAPIService {
     ): Response<Listing<Post>>
 
     @GET("/r/{subreddit}/about")
-    suspend fun getSubInfo(@Path("subreddit") subreddit: String): Response<Subreddit>
+    suspend fun getSubInfo(@Path("subreddit") subreddit: SubredditName): Response<Subreddit>
 
     @GET("user/{username}/about.json")
     suspend fun getUserAbout(@Path("username") username: String): Response<Listing<Post>>
-
-    @POST("/api/save")
-    suspend fun save(@Query("id") fullname: String): Response<Unit>
-
-    @POST("/api/unsave")
-    suspend fun unsave(@Query("id") fullname: String): Response<Unit>
-
-    /**
-     * Votes on a post.
-     *
-     * Allows a user to cast a vote on a specific post.
-     *
-     * @param fullname The full name (ID) of the post to vote on.
-     *                 This uniquely identifies the post within the system.
-     * @param direction The direction of the vote.
-     *                  -  `1`: Upvote
-     *                  - `-1`: Downvote
-     *                  -  `0`: Neutral/Clear Vote (removes any existing vote)
-     * @throws HttpException with a status code of 400 if the vote could not be processed.
-     *                       This can occur if the post is too old for example.
-     * @throws Throwable if any other error occurs during the request.
-     *
-     * See [POST /api/vote](https://www.reddit.com/dev/api#POST_api_vote) for more information.
-     */
-    @POST("/api/vote")
-    suspend fun vote(@Query("id") fullname: String, @Query("dir") direction: Int)
 
     @GET("/subreddits/mine/subscriber")
     suspend fun getSubreddits(
@@ -103,7 +81,7 @@ interface RedditAPIService {
 
     @GET("/r/{subreddit}/{sort}.json")
     suspend fun getSubreddit(
-        @Path("subreddit") subreddit: String,
+        @Path("subreddit") subreddit: SubredditName,
         @Path("sort") sort: PostSort = PostSort.Best,
         @Query("after") after: String? = null,
         @Query("before") before: String? = null,
@@ -123,8 +101,8 @@ interface RedditAPIService {
      */
     @GET("/r/{subreddit}/comments/{id}.json")
     suspend fun getComments(
-        @Path("subreddit") subreddit: String,
-        @Path("id") id: String,
+        @Path("subreddit") subreddit: SubredditName,
+        @Path("id") id: PostId,
         @Query("showedits") showEdits: Boolean = false,
         @Query("showmore") showMore: Boolean = false,
         @Query("showmedia") showMedia: Boolean = false,
@@ -148,13 +126,14 @@ interface RedditAPIService {
         @Query("context") context: Int? = 0,
         @Query("depth") depth: Int? = null,
         @Query("limit") limit: Int = API_LIMIT,
-    ): Response<Array<Listing<Thing>>>
+    ): Response<CommentsResponse>
 }
 
 @Serializable(with = CommentsResponseSerializer::class)
 data class CommentsResponse(
+    /** Contains only 1 (one) [Post] */
     val post: Listing<Post>,
-    /** Either [Comment] or [More] */
+    /** List of [Comment] with an optional [More] at the very end */
     val comments: Listing<Thing>,
     val more: More? = null,
 )

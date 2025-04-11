@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -43,10 +44,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.reddit.subreddit.SubredditDao
+import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
+import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.ui.post.CommentsViewer
 import com.sofamaniac.reboost.ui.subreddit.HomeView
 import com.sofamaniac.reboost.ui.subreddit.HomeViewer
@@ -259,7 +266,7 @@ fun NavigationGraph(
                 navController, selected,
                 viewModel {
                     SubredditView(
-                        "artknights"
+                        SubredditName("artknights")
                     )
                 }
             )
@@ -271,7 +278,7 @@ fun NavigationGraph(
                 navController, selected,
                 viewModel {
                     SubredditView(
-                        subreddit
+                        SubredditName(subreddit)
                     )
                 }
             )
@@ -286,12 +293,35 @@ fun NavigationGraph(
             var post by remember { mutableStateOf<com.sofamaniac.reboost.reddit.Post?>(null) }
             LaunchedEffect(post_permalink) {
                 val temp =
-                    RedditAPI.service.getPostFromPermalink(post_permalink).body()?.firstOrNull()
+                    RedditAPI.service.getPostFromPermalink(post_permalink).body()?.post
                         ?.first()
-                post = temp as com.sofamaniac.reboost.reddit.Post?
+                post = temp
             }
             if (post != null) {
                 CommentsViewer(navController, selected, post!!)
+            }
+        }
+    }
+}
+
+@Database(entities = [SubredditEntity::class], version = 2)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun subredditDao(): SubredditDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(
+                    context,
+                    AppDatabase::class.java,
+                    "subreddit_database"
+                )
+                    // FIXME Destroy all tables on migration
+                    .fallbackToDestructiveMigration(true)
+                    .build().also { INSTANCE = it }
             }
         }
     }

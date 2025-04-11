@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost
 
+import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import kotlinx.serialization.Serializable
 
 enum class RouteType {

@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DrawerState
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,6 +49,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 import kotlinx.coroutines.launch
 import kotlin.collections.plus
 
@@ -136,7 +140,7 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
     }
 
 
-    val sortedSubs = state.subreddits.sortedBy { it.data.display_name.lowercase() }
+    val sortedSubs = state.subreddits.sortedBy { it.data.display_name.name.lowercase() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scope = rememberCoroutineScope()
 
@@ -166,11 +170,19 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
             ) {
                 items(count = sortedSubs.size) { index ->
                     sortedSubs[index].let { subs ->
-                        Text(
-                            text = subs.data.display_name,
-                            modifier = Modifier.clickable {
-                                navController.navigate(com.sofamaniac.reboost.Subreddit(subs.data.display_name))
-                            })
+                        Row {
+                            SubredditIcon(
+                                subs.data.display_name,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                            )
+                            Text(
+                                text = subs.data.display_name.name,
+                                modifier = Modifier.clickable {
+                                    navController.navigate(com.sofamaniac.reboost.Subreddit(subs.data.display_name.name))
+                                })
+                        }
                         HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                     }
                 }

@@ -3,11 +3,23 @@ package com.sofamaniac.reboost.reddit.subreddit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
+@JvmInline
+value class SubredditId(val id: String)
+
+@Serializable
+@JvmInline
+value class SubredditName(val name: String)
 
 @Serializable
 data class CommentContributionSettings(
     @SerialName("allowed_media_types") val allowedMediaTypes: List<String>? = null
 )
+
+fun dummySubredditData(): SubredditData {
+    return SubredditData(display_name = SubredditName(""), id = SubredditId(""), icon_img = "")
+}
+// TODO sometimes, id, display_name and icon_img are missing
 
 @Serializable
 data class SubredditData(
@@ -19,19 +31,23 @@ data class SubredditData(
     val wiki_enabled: Boolean? = null,
     val user_is_muted: Boolean = false,
     val user_can_flair_in_sr: Boolean? = null,
-    val display_name: String = "",
+    /** The name of the subreddit (e.g. "unixporn") */
+    val display_name: SubredditName = SubredditName(""),
     val header_img: String? = null,
     val title: String = "",
     val allow_galleries: Boolean = false,
     val icon_size: List<Int>? = null,
+    /** Primary color in the form "#ffffff" */
     val primary_color: String = "",
     val active_user_count: Int? = null,
-    val icon_img: String? = null,
+    val icon_img: String = "",
+    /** The name of the subreddit with the 'r/' prefix (e.g. "r/unixporn") */
     val display_name_prefixed: String = "",
     val accounts_active: Int? = null,
     val public_traffic: Boolean = false,
     val subscribers: Int = 0,
     val videostream_links_count: Int = 0,
+    /** The string "t2_[id]" */
     val name: String = "",
     val quarantine: Boolean = false,
     val hide_ads: Boolean = false,
@@ -41,6 +57,7 @@ data class SubredditData(
     val public_description: String = "",
     val comment_score_hide_mins: Int = 0,
     val allow_predictions: Boolean = false,
+    /** Escaped HTML url */
     val community_icon: String? = null,
     val banner_background_image: String? = null,
     val original_content_tag_enabled: Boolean = false,
@@ -84,7 +101,7 @@ data class SubredditData(
     val subreddit_type: String = "",
     val banner_img: String? = null,
     val show_media: Boolean = false,
-    val id: String = "",
+    val id: SubredditId = SubredditId(""),
     val user_is_moderator: Boolean = false,
     val over18: Boolean = false,
     val header_title: String? = null,

@@ -3,6 +3,8 @@ package com.sofamaniac.reboost.reddit
 import com.sofamaniac.reboost.reddit.comment.CommentData
 import com.sofamaniac.reboost.reddit.post.PostData
 import com.sofamaniac.reboost.reddit.subreddit.SubredditData
+import com.sofamaniac.reboost.reddit.subreddit.SubredditName
+import com.sofamaniac.reboost.reddit.subreddit.dummySubredditData
 import com.sofamaniac.reboost.reddit.utils.PostDataSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -41,7 +43,7 @@ fun emptyListing(): Listing<Thing> {
 
 @Serializable
 @SerialName("t5")
-data class Subreddit(override val data: SubredditData = SubredditData()) :
+data class Subreddit(override val data: SubredditData = dummySubredditData()) :
     Thing()
 
 @Serializable

@@ -158,7 +158,7 @@ fun PostFeedViewer(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState,
         ) {
-            items(count = posts.itemCount, key = posts.itemKey { it.data.id }) { index ->
+            items(count = posts.itemCount, key = posts.itemKey { it.data.id.id }) { index ->
                 posts[index]?.let { post ->
                     View(post, navController, selected, showSubredditIcon = showSubredditIcon)
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())

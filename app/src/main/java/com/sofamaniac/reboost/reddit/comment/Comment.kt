@@ -10,6 +10,14 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
+@JvmInline
+value class CommentId(val id: String)
+
+@Serializable
+@JvmInline
+value class CommentFullname(val id: String)
+
+@Serializable
 data class CommentData(
     val all_awardings: List<String> = emptyList(),
     @Serializable(with = InstantAsFloatSerializer::class)
@@ -55,7 +63,7 @@ data class CommentData(
     val gilded: Int,
     // FIXME
     //val gildings: List<String>,
-    val id: String,
+    val id: CommentId,
     val is_submitter: Boolean,
     val likes: Boolean? = null,
     val link_id: String,
@@ -64,7 +72,7 @@ data class CommentData(
     val mod_reason_by: String? = null,
     val mod_reason_title: String? = null,
     val mod_reports: List<String>,
-    val name: String,
+    val name: CommentFullname,
     val no_follow: Boolean,
     val num_reports: Int? = null,
     val parent_id: String,

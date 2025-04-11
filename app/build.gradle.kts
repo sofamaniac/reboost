@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
-
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -121,6 +121,15 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
 
+    // Rooms
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+    ksp(libs.androidx.room.compiler)
+
     // Render markdown
     implementation(libs.markwon.core) // Markwon core
     implementation(libs.markwon.html) // Optional: HTML support
@@ -130,6 +139,8 @@ dependencies {
     implementation(libs.markwon.tables)
     implementation(libs.markwon.tasklist)
     implementation(libs.markwon.strikethrough)
+
+
     //implementation("io.noties.markwon:recycler:4.6.2") // Optional: If using RecyclerView
     //implementation("org.commonmark:commonmark:0.21.0") // Required for syntax highlighting
     //implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0") // Optional: Support for tables
