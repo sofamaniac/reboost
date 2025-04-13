@@ -14,12 +14,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
-import org.apache.commons.text.StringEscapeUtils
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostImage(post: Post, modifier: Modifier = Modifier) {
-    if (post.data.preview?.images?.isNotEmpty() == true) {
+    if (post.data.preview.images.isNotEmpty()) {
         FromMetadata(post, modifier)
     } else {
         val context = LocalContext.current
@@ -44,7 +43,7 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val images = post.data.preview!!
     val image = images.images[0].source
-    val url = StringEscapeUtils.unescapeHtml4(image.url)
+    val url = image.url
     val x = image.width
     val y = image.height
     GlideImage(

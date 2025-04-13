@@ -10,9 +10,6 @@ import com.sofamaniac.reboost.reddit.comment.CommentAPI
 import com.sofamaniac.reboost.reddit.post.PostAPI
 import com.sofamaniac.reboost.reddit.post.PostId
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
-import com.sofamaniac.reboost.reddit.post.Sort as PostSort
-import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
-import com.sofamaniac.reboost.reddit.comment.Sort as CommentSort
 import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -26,9 +23,11 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.GET
-import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import com.sofamaniac.reboost.reddit.comment.Sort as CommentSort
+import com.sofamaniac.reboost.reddit.post.Sort as PostSort
+import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
 
 private const val BASE_URL = "https://oauth.reddit.com/"
 
@@ -263,11 +262,21 @@ class RateLimitInterceptor : Interceptor {
     }
 }
 
+/**
+ * From the top [Reddit API wiki](https://www.reddit.com/dev/api/)
+ * For legacy reasons, all JSON response bodies currently have <, >, and &
+ * replaced with &lt;, &gt;, and &amp;, respectively.
+ * If you wish to opt out of this behaviour, add a raw_json=1 parameter to your request.
+ */
 class ForceJsonInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
-        val request = chain.request().newBuilder()
+        // TODO: not sure if needed
+        val headerRequest = chain.request().newBuilder()
             .addHeader("Accept", "application/json")
             .build()
+        val url = headerRequest.url.newBuilder()
+            .addQueryParameter("raw_json", "1").build()
+        val request = headerRequest.newBuilder().url(url).build()
         return chain.proceed(request)
     }
 }
