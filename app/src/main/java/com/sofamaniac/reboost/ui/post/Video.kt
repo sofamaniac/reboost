@@ -24,7 +24,7 @@ fun PostVideo(post: Post, modifier: Modifier = Modifier) {
     val media = post.data.media.media
     if (media != null && media.reddit_video != null) {
         val context = LocalContext.current
-        val mediaItem = MediaItem.fromUri(media.reddit_video.fallback_url)
+        val mediaItem = MediaItem.fromUri(media.reddit_video.fallback_url?.toString() ?: "")
         val width = media.reddit_video.width
         val height = media.reddit_video.height
         val exoPlayer = remember {
@@ -44,7 +44,7 @@ fun PostVideo(post: Post, modifier: Modifier = Modifier) {
             }
         }
         Box {
-            Text(text = post.data.url)
+            Text(text = post.data.url.toString())
             AndroidView(
                 factory = { ctx ->
                     PlayerView(ctx).apply {

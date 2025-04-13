@@ -123,7 +123,7 @@ fun BottomRow(post: Post, modifier: Modifier = Modifier) {
             Icon(Icons.AutoMirrored.Outlined.Chat, "comments")
         }
         IconButton(onClick = {
-            uriHandler.openUri(post.data.url)
+            uriHandler.openUri(post.data.url.toString())
         }) {
             Icon(Icons.AutoMirrored.Outlined.ExitToApp, "open in app")
         }

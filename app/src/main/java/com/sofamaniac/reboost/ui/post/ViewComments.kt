@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost.ui.post
 
-import android.R
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,8 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -37,9 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.reddit.Comment
-import com.sofamaniac.reboost.reddit.CommentsResponse
 import com.sofamaniac.reboost.reddit.Listing
-import com.sofamaniac.reboost.reddit.ListingData
 import com.sofamaniac.reboost.reddit.More
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
@@ -69,7 +64,7 @@ fun PostView(
             showSubredditIcon = false,
             modifier = modifier
         )
-        val enablePreview = post.data.thumbnail.url.isNotEmpty()
+        val enablePreview = post.data.thumbnail.uri.toString().isNotEmpty()
         PostInfo(
             post,
             navController,

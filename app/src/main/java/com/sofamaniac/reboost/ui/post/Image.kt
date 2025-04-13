@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -30,7 +31,10 @@ fun PostImage(post: Post, modifier: Modifier = Modifier) {
                 .fillMaxSize(),
             contentScale = ContentScale.FillBounds,
         ) {
-            it.thumbnail(Glide.with(context).load(post.data.thumbnail))
+            val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
+            if (thumbnailURL != null) {
+                it.thumbnail(Glide.with(context).load(thumbnailURL.toUrl()))
+            }
             it.placeholder(Color.Gray.toArgb().toDrawable())
             it.load(url)
         }
@@ -54,10 +58,10 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
             .aspectRatio(x.toFloat() / y.toFloat()),
         contentScale = ContentScale.FillWidth,
     ) {
-        if (post.data.thumbnail.url.isNotEmpty()) {
-            it.thumbnail(Glide.with(context).load(post.data.thumbnail.url))
+        val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
+        if (thumbnailURL != null) {
+            it.thumbnail(Glide.with(context).load(thumbnailURL.toUrl()))
         }
         it.placeholder(Color.Gray.toArgb().toDrawable())
-        it.load(url)
     }
 }

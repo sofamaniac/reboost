@@ -68,5 +68,5 @@ interface Route {
     val title: String
 }
 
-// TODO move closer in the navgraph. Maybe one per tab ?
+// TODO move closer in the navgraph. Maybe one per tab ? Or move its initalisation to the tabs ?
 val LocalNavController = compositionLocalOf<NavController?> { null }

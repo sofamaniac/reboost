@@ -11,9 +11,12 @@ import com.sofamaniac.reboost.reddit.post.PostAPI
 import com.sofamaniac.reboost.reddit.post.PostId
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
+import com.sofamaniac.reboost.reddit.utils.URISerializer
+import com.sofamaniac.reboost.reddit.utils.URLSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.ClientAuthentication
 import okhttp3.Interceptor
@@ -25,6 +28,8 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.net.URI
+import java.net.URL
 import com.sofamaniac.reboost.reddit.comment.Sort as CommentSort
 import com.sofamaniac.reboost.reddit.post.Sort as PostSort
 import com.sofamaniac.reboost.reddit.post.Timeframe as PostTimeframe
@@ -149,6 +154,10 @@ object RedditAPI {
         val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
+            serializersModule = SerializersModule {
+                contextual(URL::class, URLSerializer)
+                contextual(URI::class, URISerializer)
+            }
         }
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)

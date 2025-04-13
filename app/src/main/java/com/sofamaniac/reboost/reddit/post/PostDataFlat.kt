@@ -8,11 +8,15 @@ import com.sofamaniac.reboost.reddit.subreddit.SubredditId
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
+import com.sofamaniac.reboost.reddit.utils.TranscodedVideo
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
+import java.net.URI
+import java.net.URL
 
 /** ID 36 of a post */
 @Serializable
@@ -32,7 +36,7 @@ data class PostDataFlat(
 
     @SerialName("id") val id: PostId,
     @SerialName("name") val fullname: PostFullname,
-    @SerialName("url") val url: String = "",
+    @SerialName("url") @Contextual val url: URL? = null,
     @SerialName("title") val title: String = "",
     @SerialName("suggested_sort") val suggested_sort: String? = null,
     @SerialName("num_comments") val num_comments: Int = 0,
@@ -72,7 +76,8 @@ data class PostDataFlat(
     @SerialName("subreddit_type") val subreddit_type: String = "",
 
     // Thumbnail
-    @SerialName("thumbnail") val thumbnailUrl: String? = null,
+    /** Can either be an URL, "self", "spoiler" */
+    @SerialName("thumbnail") @Contextual val thumbnailUrl: URI? = null,
     @SerialName("thumbnail_height") val thumbnail_height: Int? = null,
     @SerialName("thumbnail_width") val thumbnail_width: Int? = null,
 
@@ -207,7 +212,7 @@ data class PostDataFlat(
     val thumbnail: Thumbnail
         get() {
             return Thumbnail(
-                url = thumbnailUrl ?: "",
+                uri = thumbnailUrl ?: URI(""),
                 width = thumbnail_width ?: 0,
                 height = thumbnail_height ?: 0
             )
@@ -265,7 +270,7 @@ data class PostDataFlat(
     fun toPostData(): PostData {
         return PostData(
             id = id,
-            url = url,
+            url = url ?: URL(""),
             permalink = permalink,
             title = title,
             suggestedSort = suggested_sort ?: "",
@@ -292,23 +297,41 @@ data class PostDataFlat(
 //FIXME
 @Serializable
 data class Media(
+    @Serializable(with = TranscodedVideo::class)
     val reddit_video: RedditVideo? = null,
+    val oembed: OEmbed? = null,
+)
+
+@Serializable
+data class OEmbed(
+    @SerialName("provider_url") @Contextual val providerUrl: URL? = null,
+    @SerialName("version") val version: String = "",
+    @SerialName("title") val title: String = "",
+    /** One of "video" */
+    @SerialName("type") val type: String = "",
+    @SerialName("height") val height: Int = 0,
+    @SerialName("width") val width: Int = 0,
+    @SerialName("html") val html: String = "",
+    @SerialName("provider_name") val providerName: String = "",
+
+    @SerialName("thumbnail_width") val thumbnailWidth: Int = 0,
+    @SerialName("thumbnail_height") val thumbnailHeight: Int = 0,
+    @SerialName("thumbnail_url") @Contextual val thumbnailUrl: URL? = null,
 )
 
 
 @Serializable
 data class RedditVideo(
-    val fallback_url: String = "",
+    /** Use this url to get the video */
+    @Contextual val fallback_url: URL,
     val width: Int = 0,
     val height: Int = 0,
-    val scrubber_media_url: String = "",
-    /** Use this url to get the video */
-    val dash_url: String = "",
+    @Contextual val scrubber_media_url: URL,
+    @Contextual val dash_url: URL,
     /** Duration in seconds */
     val duration: Int,
-    val hls_url: String = "",
+    @Contextual val hls_url: URL? = null,
     val is_gif: Boolean = false,
-    val transcoding_status: String = "",
 )
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -344,39 +367,17 @@ data class MediaPreviewGif(
 
 @Serializable
 data class MediaPreviewGifSource(
-    @SerialName("gif") val gifUrl: String = "",
+    @SerialName("gif") @Contextual val gifUrl: URL? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0,
-    @SerialName("mp4") val mp4Url: String = "",
+    @SerialName("mp4") @Contextual val mp4Url: URL? = null,
 )
 
 
 @Serializable
 data class MediaPreview(
     /** Url of the preview */
-    @SerialName("u") val url: String = "",
+    @SerialName("u") @Contextual val url: URL? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0
 )
-
-//@Serializable
-//data class Preview(
-//    @SerialName("images") val images: List<PreviewImage> = emptyList(),
-//    val enabled: Boolean? = false
-//)
-//
-//@Serializable
-//data class PreviewImage(
-//    @SerialName("source") val source: PreviewImageSource,
-//    @SerialName("resolutions") val resolutions: List<PreviewImageSource>,
-//    // val variant
-//    val id: String? = null,
-//)
-//
-//@Serializable
-//data class PreviewImageSource(
-//    @SerialName("url") val url: String,
-//    val width: Int,
-//    val height: Int,
-//)
-

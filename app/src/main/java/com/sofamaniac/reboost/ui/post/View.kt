@@ -28,6 +28,7 @@ import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.Flair
 import com.sofamaniac.reboost.ui.SimpleMarkdown
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -44,7 +45,7 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
 
         Kind.Link -> {
             Text(
-                post.data.url,
+                post.data.url.toString(),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -102,8 +103,9 @@ fun PostInfo(
         }
         if (enablePreview) {
             // TODO make clickable
+            val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
             GlideImage(
-                model = post.data.thumbnail.url,
+                model = thumbnailURL?.toUrl(),
                 contentDescription = "Thumbnail",
                 modifier = modifier
                     .fillMaxWidth(fraction = 0.25f)
@@ -156,7 +158,8 @@ fun View(
             showSubredditIcon = showSubredditIcon,
             modifier = modifier
         )
-        val enablePreview = post.data.thumbnail.url.isNotEmpty() && post.data.kind == Kind.Link
+        val enablePreview =
+            post.data.thumbnail.uri.toString().isNotEmpty() && post.data.kind == Kind.Link
         PostInfo(
             post,
             navController,

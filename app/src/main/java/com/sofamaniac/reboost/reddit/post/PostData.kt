@@ -4,13 +4,15 @@ import com.sofamaniac.reboost.reddit.AuthorInfo
 import com.sofamaniac.reboost.reddit.Flair
 import com.sofamaniac.reboost.reddit.Thumbnail
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import java.net.URL
 
 @Serializable
 data class PostData(
     val id: PostId,
     val name: PostFullname,
-    val url: String,
+    @Contextual val url: URL,
     val domain: String,
     val permalink: String,
     val title: String,
