@@ -24,7 +24,7 @@ abstract class PostRepository(
                 return PagedResponse(
                     data = it.data.children,
                     after = it.data.after,
-                    total = it.size()
+                    total = it.size
                 )
             }
             return PagedResponse()

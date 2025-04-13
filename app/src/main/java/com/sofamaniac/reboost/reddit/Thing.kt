@@ -28,12 +28,15 @@ data class Post(@Serializable(with = PostDataSerializer::class) override val dat
 data class Listing<T : Thing>(
     override val data: ListingData<T>
 ) : Thing(), Iterable<T> {
+
+    val size: Int get() = data.children.size
+
     override fun iterator(): Iterator<T> {
         return data.children.iterator()
     }
 
-    fun size(): Int {
-        return data.children.size
+    fun isEmpty(): Boolean {
+        return data.children.isEmpty()
     }
 }
 

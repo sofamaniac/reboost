@@ -28,7 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import com.sofamaniac.reboost.BuildConfig
+import com.sofamaniac.reboost.LocalNavController
+import com.sofamaniac.reboost.PostRoute
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.RedditAPI
 import kotlinx.coroutines.launch
@@ -108,14 +111,20 @@ private fun SavedButton(post: Post) {
 
 @Composable
 fun BottomRow(post: Post, modifier: Modifier = Modifier) {
+    val navController = LocalNavController.current!!
+    val uriHandler = LocalUriHandler.current
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
         UpButton(post)
         DownButton(post)
         SavedButton(post)
-        IconButton(onClick = {/*TODO: Comments */ }) {
+        IconButton(onClick = {
+            navController.navigate(PostRoute(post.data.permalink))
+        }) {
             Icon(Icons.AutoMirrored.Outlined.Chat, "comments")
         }
-        IconButton(onClick = { /*TODO: exit to app*/ }) {
+        IconButton(onClick = {
+            uriHandler.openUri(post.data.url)
+        }) {
             Icon(Icons.AutoMirrored.Outlined.ExitToApp, "open in app")
         }
         PostOptions(post)

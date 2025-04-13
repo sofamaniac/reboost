@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
@@ -108,16 +109,19 @@ class MainActivity : ComponentActivity() {
                 }
                 MaterialTheme {
                     val navController = rememberNavController()
-                    MainScreen(
-                        authState,
-                        navController = navController,
-                        onLoginClicked = {
-                            // Create and launch the auth intent here
-                            val authIntent =
-                                authState.authService.getAuthorizationRequestIntent(authState.authRequest)
-                            launcher.launch(authIntent)
-                        },
-                    )
+                    // Setup nav controller
+                    CompositionLocalProvider(LocalNavController provides navController) {
+                        MainScreen(
+                            authState,
+                            navController = navController,
+                            onLoginClicked = {
+                                // Create and launch the auth intent here
+                                val authIntent =
+                                    authState.authService.getAuthorizationRequestIntent(authState.authRequest)
+                                launcher.launch(authIntent)
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -136,7 +140,10 @@ class MainActivity : ComponentActivity() {
         if (resp != null) {
             val basicAuth = BasicAuthClient(authState.authConfig.clientId)
             val tokenExchangeRequest = resp.createTokenExchangeRequest()
-            Log.d("MainActivity", "Token request: ${tokenExchangeRequest.jsonSerializeString()}")
+            Log.d(
+                "MainActivity",
+                "Token request: ${tokenExchangeRequest.jsonSerializeString()}"
+            )
             Log.d("MainActivity", "redirect uri: ${authState.authConfig.redirectUri}")
             authState.authService.performTokenRequest(
                 tokenExchangeRequest,
@@ -242,6 +249,7 @@ fun NavigationGraph(
 ) {
     val selected = remember { mutableIntStateOf(0) }
     val home by remember { mutableStateOf(HomeView()) }
+
     NavHost(
         navController = navController,
         startDestination = Home,
@@ -252,15 +260,15 @@ fun NavigationGraph(
             //HomeViewer(navController, selected)
             HomeViewer(navController, selected, home)
         }
-        composable<Subscriptions> {
+        composable<SubscriptionsRoute> {
             selected.intValue = 2
             SubredditListViewer(navController = navController)
         }
-        composable<Search> {
+        composable<SearchRoute> {
             selected.intValue = 1
             PostFeedViewer(HomeView(), navController, selected)
         }
-        composable<Inbox> {
+        composable<InboxRoute> {
             selected.intValue = 3
             SubredditViewer(
                 navController, selected,
@@ -271,9 +279,9 @@ fun NavigationGraph(
                 }
             )
         }
-        composable<Subreddit> { navBackStackEntry ->
+        composable<SubredditRoute> { navBackStackEntry ->
             selected.intValue = 2
-            val subreddit = navBackStackEntry.toRoute<Subreddit>().subreddit
+            val subreddit = navBackStackEntry.toRoute<SubredditRoute>().subreddit
             SubredditViewer(
                 navController, selected,
                 viewModel {
@@ -283,12 +291,12 @@ fun NavigationGraph(
                 }
             )
         }
-        composable<Profile> { navBackStackEntry ->
+        composable<ProfileRoute> { navBackStackEntry ->
             selected.intValue = 4
             SavedViewer(navController, selected)
         }
-        composable<Post> { navBackStackEntry ->
-            val post_permalink = navBackStackEntry.toRoute<Post>().post_permalink
+        composable<PostRoute> { navBackStackEntry ->
+            val post_permalink = navBackStackEntry.toRoute<PostRoute>().post_permalink
             Log.d("NavigationGraph", "post_permalink: $post_permalink")
             var post by remember { mutableStateOf<com.sofamaniac.reboost.reddit.Post?>(null) }
             LaunchedEffect(post_permalink) {

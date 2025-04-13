@@ -1,12 +1,10 @@
 package com.sofamaniac.reboost.ui.post
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -94,7 +92,7 @@ fun PostInfo(
                 modifier = titleModifier.clickable(
                     enabled = titleClickable,
                     onClick = {
-                        navController.navigate(com.sofamaniac.reboost.Post(post.data.permalink))
+                        navController.navigate(com.sofamaniac.reboost.PostRoute(post.data.permalink))
                     }
                 )
             )

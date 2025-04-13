@@ -44,8 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.sofamaniac.reboost.Tab
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Subreddit
@@ -180,7 +178,11 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
                             Text(
                                 text = subs.data.display_name.name,
                                 modifier = Modifier.clickable {
-                                    navController.navigate(com.sofamaniac.reboost.Subreddit(subs.data.display_name.name))
+                                    navController.navigate(
+                                        com.sofamaniac.reboost.SubredditRoute(
+                                            subs.data.display_name.name
+                                        )
+                                    )
                                 })
                         }
                         HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())

@@ -113,7 +113,7 @@ fun CommentView(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0)
                 modifier,
             )
             HorizontalDivider()
-            if (comment.data.replies != null) {
+            if (!comment.data.replies.isEmpty()) {
                 CommentList(comment.data.replies, depth = depth + 1)
             }
         }
@@ -121,10 +121,16 @@ fun CommentView(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0)
 }
 
 @Composable
-fun CommentList(comments: Listing<Comment>, modifier: Modifier = Modifier, depth: Int = 0) {
+fun CommentList(comments: Listing<Thing>, modifier: Modifier = Modifier, depth: Int = 0) {
     Column {
-        comments.data.children.forEach { comment ->
-            CommentView(comment, depth = depth)
+        comments.forEach { comment ->
+            when (comment) {
+                is Comment -> CommentView(comment, depth = depth)
+                is More -> MoreViewer(comment)
+                else -> {
+                    Log.e("CommentList", "Unknown comment type: ${comment.javaClass.name}")
+                }
+            }
         }
     }
 }
@@ -141,6 +147,7 @@ fun CommentListRoot(
     LaunchedEffect(viewModel) {
         viewModel.refresh()
     }
+    Log.d("CommentListRoot", "comments: ${viewModel.comments}")
     PullToRefreshBox(isRefreshing = viewModel.isRefreshing, onRefresh = {
         scope.launch { viewModel.refresh() }
     }) {
@@ -172,7 +179,7 @@ fun CommentListRoot(
 
 @Composable
 fun MoreViewer(commentsResponse: More, modifier: Modifier = Modifier) {
-    Text("More", modifier)
+    Text("More", modifier, style = MaterialTheme.typography.titleSmall)
 }
 
 @Composable

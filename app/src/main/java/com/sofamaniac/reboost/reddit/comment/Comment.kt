@@ -3,6 +3,7 @@ package com.sofamaniac.reboost.reddit.comment
 import com.sofamaniac.reboost.reddit.Comment
 import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 import com.sofamaniac.reboost.reddit.Listing
+import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.utils.EmptyStringOrListingSerializer
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
@@ -79,7 +80,7 @@ data class CommentData(
     val permalink: String,
     val removal_reason: String? = null,
     @Serializable(with = EmptyStringOrListingSerializer::class)
-    val replies: Listing<Comment>? = null,
+    val replies: Listing<Thing>,
     val report_reasons: String? = null,
     val saved: Boolean,
     val score: Int,

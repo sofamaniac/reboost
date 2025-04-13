@@ -38,10 +38,10 @@ fun BottomBar(
 ) {
     val tabs = listOf(
         Pair(Icons.Filled.Home, Home),
-        Pair(Icons.Default.Search, Search),
-        Pair(Icons.AutoMirrored.Outlined.List, Subscriptions),
-        Pair(Icons.Default.Email, Inbox),
-        Pair(Icons.Filled.Person, Profile("me"))
+        Pair(Icons.Default.Search, SearchRoute),
+        Pair(Icons.AutoMirrored.Outlined.List, SubscriptionsRoute),
+        Pair(Icons.Default.Email, InboxRoute),
+        Pair(Icons.Filled.Person, ProfileRoute("me"))
     )
     CustomNavigationBar(modifier = Modifier.fillMaxWidth()) {
         for ((index, tab) in tabs.withIndex()) {
