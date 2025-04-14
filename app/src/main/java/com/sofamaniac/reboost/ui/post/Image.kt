@@ -45,11 +45,12 @@ fun PostImage(post: Post, modifier: Modifier = Modifier) {
 @Composable
 fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val images = post.data.preview!!
+    val images = post.data.preview
     val image = images.images[0].source
     val url = image.url
     val x = image.width
     val y = image.height
+    val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()?.toUrl()
     GlideImage(
         model = url,
         contentDescription = post.data.title,
@@ -58,9 +59,8 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
             .aspectRatio(x.toFloat() / y.toFloat()),
         contentScale = ContentScale.FillWidth,
     ) {
-        val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
         if (thumbnailURL != null) {
-            it.thumbnail(Glide.with(context).load(thumbnailURL.toUrl()))
+            it.thumbnail(Glide.with(context).load(thumbnailURL))
         }
         it.placeholder(Color.Gray.toArgb().toDrawable())
     }

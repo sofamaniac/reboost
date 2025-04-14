@@ -1,25 +1,24 @@
 package com.sofamaniac.reboost.ui.post
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -89,29 +89,59 @@ fun CommentView(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0)
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
-        repeat(depth) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .heightIn(min = 40.dp) // or match parent height manually
-                    .padding(end = 4.dp)
-                    .background(Color.LightGray, shape = RoundedCornerShape(2.dp))
-            )
-        }
+        IndentGuides(depth)
         Column(
             modifier = modifier
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
         ) {
-            SimpleMarkdown(
-                comment.data.body,
-                modifier,
-            )
-            HorizontalDivider()
+            CommentNode(comment, modifier, depth)
             if (!comment.data.replies.isEmpty()) {
                 CommentList(comment.data.replies, depth = depth + 1)
             }
+            if (depth == 0) {
+                HorizontalDivider()
+            }
         }
+    }
+}
+
+@Composable
+fun IndentGuides(depth: Int) {
+    Row(modifier = Modifier.padding(end = 8.dp)) {
+        repeat(depth) {
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .fillMaxHeight()
+                    .padding(end = 4.dp)
+            ) {
+//                Box(
+//                    modifier = Modifier
+//                        .width(2.dp)
+//                        .fillMaxHeight()
+//                        .background(Color.LightGray.copy(alpha = 0.5f))
+//                        .align(Alignment.CenterStart)
+//                )
+
+                VerticalDivider(
+                    thickness = 2.dp,
+                    color = Color.LightGray.copy(alpha = 0.5f),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CommentNode(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0) {
+    Column {
+        Text(comment.data.author, color = MaterialTheme.colorScheme.primary)
+        SimpleMarkdown(
+            comment.data.body,
+            modifier,
+        )
     }
 }
 
@@ -159,8 +189,7 @@ fun CommentListRoot(
                 HorizontalDivider()
             }
             items(viewModel.comments.data.children.size) { index ->
-                val comment = viewModel.comments.data.children[index]
-                when (comment) {
+                when (val comment = viewModel.comments.data.children[index]) {
                     is Comment -> CommentView(comment)
                     is More -> MoreViewer(comment)
                     else -> {

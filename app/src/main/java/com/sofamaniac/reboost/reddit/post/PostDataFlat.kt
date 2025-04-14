@@ -302,6 +302,7 @@ data class Media(
     val oembed: OEmbed? = null,
 )
 
+// FIXME: there is a field called cache_age that apparently can exceed Int.MAX_VALUE, making the serializer crash ?
 @Serializable
 data class OEmbed(
     @SerialName("provider_url") @Contextual val providerUrl: URL? = null,
@@ -317,6 +318,8 @@ data class OEmbed(
     @SerialName("thumbnail_width") val thumbnailWidth: Int = 0,
     @SerialName("thumbnail_height") val thumbnailHeight: Int = 0,
     @SerialName("thumbnail_url") @Contextual val thumbnailUrl: URL? = null,
+
+    @SerialName("cache_age") val cacheAge: Int = 0,
 )
 
 
