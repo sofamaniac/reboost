@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.BottomBar
@@ -24,7 +26,7 @@ class HomeView : PostFeedViewModel(title = "Home", repository = HomeRepository()
 fun HomeViewer(
     navController: NavController,
     selected: MutableIntState,
-    viewModel: HomeView = viewModel(),
+    viewModel: HomeView = viewModel(factory = HomeViewModelFactory()),
     modifier: Modifier = Modifier
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -39,5 +41,15 @@ fun HomeViewer(
             selected,
             modifier = Modifier.padding(innerPadding)
         )
+    }
+}
+
+class HomeViewModelFactory() : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeView::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HomeView() as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

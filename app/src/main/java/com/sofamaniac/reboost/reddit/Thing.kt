@@ -3,7 +3,6 @@ package com.sofamaniac.reboost.reddit
 import com.sofamaniac.reboost.reddit.comment.CommentData
 import com.sofamaniac.reboost.reddit.post.PostData
 import com.sofamaniac.reboost.reddit.subreddit.SubredditData
-import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.subreddit.dummySubredditData
 import com.sofamaniac.reboost.reddit.utils.PostDataSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -68,5 +67,5 @@ data class MoreData(
     val id: String,
     val parent_id: String,
     val depth: Int,
-    val children: List<String>
+    val children: List<String>,
 )

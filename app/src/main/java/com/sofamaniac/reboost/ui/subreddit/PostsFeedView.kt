@@ -49,9 +49,9 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.sofamaniac.reboost.Tab
-import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.PostRepository
 import com.sofamaniac.reboost.reddit.post.PostsSource
+import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.Timeframe
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
@@ -160,7 +160,7 @@ fun PostFeedViewer(
         ) {
             items(count = posts.itemCount, key = posts.itemKey { it.data.id.id }) { index ->
                 posts[index]?.let { post ->
-                    View(post, navController, selected, showSubredditIcon = showSubredditIcon)
+                    View(post, selected, showSubredditIcon = showSubredditIcon)
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -203,7 +203,7 @@ fun TopBar(
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch { drawerState.open() }
-            }) { Icon(Icons.Default.Menu, "") }
+            }) { Icon(Icons.Default.Menu, "Open Drawer") }
         },
         actions = {
             // Sort Dropdown

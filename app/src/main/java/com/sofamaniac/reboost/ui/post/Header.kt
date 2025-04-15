@@ -1,5 +1,6 @@
 package com.sofamaniac.reboost.ui.post
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,8 +19,8 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.ProfileRoute
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
@@ -31,11 +32,11 @@ import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 @Composable
 fun PostHeader(
     post: Post,
-    navController: NavController,
     selected: MutableIntState,
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
 ) {
+    val navController = LocalNavController.current!!
     Row(
         modifier = modifier
             .fillMaxWidth(),
@@ -44,21 +45,14 @@ fun PostHeader(
     ) {
         if (showSubredditIcon) {
             SubredditIcon(
-                post.data.subreddit.subreddit,
+                post.data.subreddit.name,
                 modifier = modifier
                     .size(24.dp)
                     .clip(CircleShape)
+                    .clickable(onClick = {
+                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.data.subreddit.name.name))
+                    })
             )
-//            GlideImage(
-//                model = subreddit.data.icon_img,
-//                contentDescription = "${subreddit.data.display_name} icon",
-//                contentScale = ContentScale.Crop,            // crop the image if it's not a square
-//                modifier = modifier
-//                    .size(24.dp)
-//                    .clip(CircleShape)                       // clip to the circle shape
-//            ) {
-//                it.placeholder(Color.Red.toArgb().toDrawable())
-//            }
         }
         val text = buildAnnotatedString {
             withLink(
@@ -66,11 +60,11 @@ fun PostHeader(
                     tag = "Subreddit",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.data.subreddit.subreddit.name))
+                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.data.subreddit.name.name))
                         selected.intValue = 2
                     })
             ) {
-                append(post.data.subreddit.subreddit.name)
+                append(post.data.subreddit.name.name)
             }
             append(" · ")
             withLink(

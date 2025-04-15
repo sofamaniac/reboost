@@ -102,20 +102,21 @@ interface RedditAPIService : CommentAPI, PostAPI {
      * @param comment focal point of the returned view
      * @param context Number of parents to be shown when [comment] is set
      * @param depth is the maximum depth of subtrees in the thread
+     * @param showMore whether to show [More] or not
      */
     @GET("/r/{subreddit}/comments/{id}.json")
     suspend fun getComments(
         @Path("subreddit") subreddit: SubredditName,
         @Path("id") id: PostId,
-        @Query("showedits") showEdits: Boolean = false,
-        @Query("showmore") showMore: Boolean = false,
-        @Query("showmedia") showMedia: Boolean = false,
-        @Query("showtitle") showTitle: Boolean = false,
-        @Query("sort") sort: CommentSort = CommentSort.Best,
+        @Query("showedits") showEdits: Boolean = true,
+        @Query("showmore") showMore: Boolean = true,
+        @Query("showmedia") showMedia: Boolean = true,
+        @Query("showtitle") showTitle: Boolean = true,
+        @Query("sort") sort: CommentSort? = null,
         @Query("comment") comment: String? = null,
-        @Query("context") context: Int? = 0,
+        @Query("context") context: Int? = null,
         @Query("depth") depth: Int? = null,
-        @Query("limit") limit: Int = API_LIMIT,
+        @Query("limit") limit: Int? = null,
     ): Response<CommentsResponse>
 
     @GET("{permalink}.json")
@@ -272,7 +273,7 @@ class RateLimitInterceptor : Interceptor {
 }
 
 /**
- * From the top [Reddit API wiki](https://www.reddit.com/dev/api/)
+ * From the top of [Reddit API wiki](https://www.reddit.com/dev/api/)
  * For legacy reasons, all JSON response bodies currently have <, >, and &
  * replaced with &lt;, &gt;, and &amp;, respectively.
  * If you wish to opt out of this behaviour, add a raw_json=1 parameter to your request.

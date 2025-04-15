@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SubredditInfo(
-    val subreddit: SubredditName,
+    val name: SubredditName,
     val subredditId: SubredditId,
     val subredditPrefixed: String,
     val subredditSubscribers: Int,

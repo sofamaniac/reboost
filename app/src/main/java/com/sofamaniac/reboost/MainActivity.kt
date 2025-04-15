@@ -248,7 +248,6 @@ fun NavigationGraph(
     modifier: Modifier = Modifier
 ) {
     val selected = remember { mutableIntStateOf(0) }
-    val home by remember { mutableStateOf(HomeView()) }
 
     NavHost(
         navController = navController,
@@ -257,8 +256,7 @@ fun NavigationGraph(
     ) {
         composable<Home> {
             selected.intValue = 0
-            //HomeViewer(navController, selected)
-            HomeViewer(navController, selected, home)
+            HomeViewer(navController, selected)
         }
         composable<SubscriptionsRoute> {
             selected.intValue = 2
@@ -306,7 +304,7 @@ fun NavigationGraph(
                 post = temp
             }
             if (post != null) {
-                CommentsViewer(navController, selected, post!!)
+                CommentsViewer(selected, post!!)
             }
         }
     }

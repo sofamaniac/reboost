@@ -16,14 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.Flair
@@ -70,11 +72,10 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
 @Composable
 fun PostInfo(
     post: Post,
-    navController: NavController,
     modifier: Modifier = Modifier,
     enablePreview: Boolean = true,
-    titleClickable: Boolean = false
 ) {
+    val hasThumbnail = enablePreview && post.data.thumbnail.uri.toHttpUrlOrNull() != null
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -82,37 +83,39 @@ fun PostInfo(
         verticalAlignment = Alignment.Top
     ) {
         Column(
-            modifier = modifier.weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val titleModifier =
-                if (enablePreview) modifier.fillMaxWidth(fraction = 0.75f) else modifier
+            val width = if (hasThumbnail) 0.8f else 1f
+            val titleModifier = Modifier.fillMaxWidth(fraction = width)
             Text(
                 post.data.title,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = titleModifier.clickable(
-                    enabled = titleClickable,
-                    onClick = {
-                        navController.navigate(com.sofamaniac.reboost.PostRoute(post.data.permalink))
-                    }
-                )
+                modifier = titleModifier.fillMaxWidth(),
+                textAlign = TextAlign.Start,
             )
             // TODO make clickable
             Flair(post.data.linkFlair)
             Text(post.scoreString(), style = MaterialTheme.typography.bodyMedium)
         }
-        if (enablePreview) {
-            // TODO make clickable
+        if (hasThumbnail) {
             val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
+            val uriHandler = LocalUriHandler.current
             GlideImage(
                 model = thumbnailURL?.toUrl(),
                 contentDescription = "Thumbnail",
-                modifier = modifier
-                    .fillMaxWidth(fraction = 0.25f)
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.2f)
                     .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = {
+                        uriHandler.openUri(post.data.url.toString())
+                    }),
+
+                )
         }
     }
 }
@@ -140,20 +143,23 @@ fun Post.scoreString(): AnnotatedString {
 @Composable
 fun View(
     post: Post,
-    navController: NavController,
     selected: MutableIntState,
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
+    clickable: Boolean = true,
 ) {
     val modifier = Modifier.padding(horizontal = 4.dp)
+    val navController = LocalNavController.current!!
     Column(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable(enabled = clickable, onClick = {
+                navController.navigate(com.sofamaniac.reboost.PostRoute(post.data.permalink))
+            }),
         verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
     ) {
         PostHeader(
             post,
-            navController,
             selected,
             showSubredditIcon = showSubredditIcon,
             modifier = modifier
@@ -162,10 +168,8 @@ fun View(
             post.data.thumbnail.uri.toString().isNotEmpty() && post.data.kind == Kind.Link
         PostInfo(
             post,
-            navController,
             modifier = modifier,
             enablePreview = enablePreview,
-            titleClickable = true
         )
         PostBody(post)
         BottomRow(post, modifier)

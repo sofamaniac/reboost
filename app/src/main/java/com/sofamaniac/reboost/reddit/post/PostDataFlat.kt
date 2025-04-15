@@ -241,7 +241,7 @@ data class PostDataFlat(
     val subredditInfo: SubredditInfo
         get() {
             return SubredditInfo(
-                subreddit = subreddit,
+                name = subreddit,
                 subredditId = subreddit_id,
                 subredditPrefixed = subreddit_name_prefixed,
                 subredditSubscribers = subreddit_subscribers,

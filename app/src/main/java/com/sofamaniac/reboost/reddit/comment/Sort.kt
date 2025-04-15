@@ -9,5 +9,9 @@ enum class Sort {
     Old,
     Random,
     Qa,
-    Live
+    Live;
+
+    override fun toString(): String {
+        return super.toString().lowercase()
+    }
 }
