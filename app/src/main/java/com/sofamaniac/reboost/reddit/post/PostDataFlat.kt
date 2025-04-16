@@ -8,6 +8,7 @@ import com.sofamaniac.reboost.reddit.subreddit.SubredditId
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
+import com.sofamaniac.reboost.reddit.utils.MediaMetadataSerializer
 import com.sofamaniac.reboost.reddit.utils.TranscodedVideo
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Contextual
@@ -45,6 +46,7 @@ data class PostDataFlat(
     @SerialName("post_hint") val post_hint: String? = null,
     @SerialName("pinned") val pinned: Boolean = false,
     @SerialName("preview") val preview: Preview? = null,
+    @SerialName("gallery_data") val GalleryData: GalleryData? = null,
 
     // Author related fields
     @SerialName("author") val author: String? = "",
@@ -151,7 +153,7 @@ data class PostDataFlat(
     // Media
     @SerialName("media") val media: Media? = null,
     @SerialName("media_embed") val media_embed: Map<String, String> = emptyMap(),
-    @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata>? = null,
+    @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata?> = emptyMap(),
     @SerialName("media_only") val media_only: Boolean = false,
     // FIXME
     //@SerialName("secure_media") val secure_media: Map<String, String> = emptyMap(),
@@ -290,6 +292,7 @@ data class PostDataFlat(
             relationship = relationship,
             name = fullname,
             domain = domain,
+            galleryData = GalleryData?.items ?: emptyList(),
         )
     }
 }
@@ -338,35 +341,39 @@ data class RedditVideo(
 )
 
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable
+@Serializable(with = MediaMetadataSerializer::class)
 @JsonClassDiscriminator("e")
-sealed class MediaMetadata()
+sealed class MediaMetadata() {
+    @Serializable
+    @SerialName("Image")
+    data class Image(
+        @SerialName("id") val id: String? = null,
+        /** Something like "image/jpeg" */
+        @SerialName("m") val m: String? = null,
+        @SerialName("p") val preview: List<MediaPreview> = emptyList(),
+        /** Source ? */
+        @SerialName("s") val s: MediaPreview? = null,
+        /** Original ? */
+        @SerialName("o") val o: List<MediaPreview> = emptyList(),
+    ) : MediaMetadata()
 
-@Serializable
-@SerialName("Image")
-data class MediaPreviewImage(
-    @SerialName("id") val id: String? = null,
-    /** Something like "image/jpeg" */
-    @SerialName("m") val m: String? = null,
-    @SerialName("p") val preview: List<MediaPreview> = emptyList(),
-    /** Source ? */
-    @SerialName("s") val s: MediaPreview? = null,
-    /** Original ? */
-    @SerialName("o") val o: List<MediaPreview> = emptyList(),
-) : MediaMetadata()
+    @Serializable
+    @SerialName("AnimatedImage")
+    data class Gif(
+        @SerialName("id") val id: String? = null,
+        /** Something like "image/jpeg" */
+        @SerialName("m") val m: String? = null,
+        @SerialName("p") val preview: List<MediaPreview> = emptyList(),
+        /** Source ? */
+        @SerialName("s") val s: MediaPreviewGifSource? = null,
+        /** Original ? */
+        @SerialName("o") val o: List<MediaPreview> = emptyList(),
+    ) : MediaMetadata()
 
-@Serializable
-@SerialName("AnimatedImage")
-data class MediaPreviewGif(
-    @SerialName("id") val id: String? = null,
-    /** Something like "image/jpeg" */
-    @SerialName("m") val m: String? = null,
-    @SerialName("p") val preview: List<MediaPreview> = emptyList(),
-    /** Source ? */
-    @SerialName("s") val s: MediaPreviewGifSource? = null,
-    /** Original ? */
-    @SerialName("o") val o: List<MediaPreview> = emptyList(),
-) : MediaMetadata()
+    @Serializable
+    @SerialName("Invalid")
+    object Invalid : MediaMetadata()
+}
 
 @Serializable
 data class MediaPreviewGifSource(
@@ -374,7 +381,10 @@ data class MediaPreviewGifSource(
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0,
     @SerialName("mp4") @Contextual val mp4Url: URL? = null,
-)
+) {
+    val ratio: Float
+        get() = width.toFloat() / height.toFloat()
+}
 
 
 @Serializable
@@ -383,4 +393,7 @@ data class MediaPreview(
     @SerialName("u") @Contextual val url: URL? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0
-)
+) {
+    val ratio: Float
+        get() = width.toFloat() / height.toFloat()
+}

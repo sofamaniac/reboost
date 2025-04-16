@@ -28,6 +28,7 @@ data class PostData(
     val kind: Kind,
     val linkFlair: Flair,
     val media: MediaInfo,
+    val galleryData: List<GalleryDataImage>,
     //val status: Status
     val createdAt: Instant,
     val edited: Instant?,
