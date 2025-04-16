@@ -1,7 +1,7 @@
 package com.sofamaniac.reboost.ui.post
 
 import android.util.Log
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,13 +44,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sofamaniac.reboost.LocalNavController
+import com.sofamaniac.reboost.ProfileRoute
 import com.sofamaniac.reboost.reddit.Comment
 import com.sofamaniac.reboost.reddit.Listing
 import com.sofamaniac.reboost.reddit.More
@@ -59,44 +59,12 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Thing
 import com.sofamaniac.reboost.reddit.comment.Sort
 import com.sofamaniac.reboost.reddit.emptyListing
-import com.sofamaniac.reboost.reddit.post.Kind
 import com.sofamaniac.reboost.ui.SimpleMarkdown
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun PostView(
-    post: Post,
-    selected: MutableIntState,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp), // Space between title, content, buttons
-    ) {
-        PostHeader(
-            post,
-            selected,
-            showSubredditIcon = false,
-        )
-        val enablePreview = post.data.thumbnail.uri.toString().isNotEmpty()
-        PostInfo(
-            post,
-            modifier = Modifier.border(width = 2.dp, color = Color.Red),
-            enablePreview = enablePreview,
-        )
-        if (post.data.kind == Kind.Self) {
-            SimpleMarkdown(
-                post.data.selftext.html(),
-            )
-        }
-        BottomRow(post)
-    }
-}
-
-@Composable
-fun CommentNode(comment: Comment, modifier: Modifier = Modifier, depth: Int = 0) {
+fun CommentNode(comment: Comment, modifier: Modifier = Modifier) {
     Column {
         Text(comment.data.author, color = MaterialTheme.colorScheme.primary)
         SimpleMarkdown(
@@ -173,6 +141,7 @@ fun CommentListRoot(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
+    val navController = LocalNavController.current!!
     LaunchedEffect(viewModel) {
         viewModel.refresh()
     }
@@ -186,13 +155,24 @@ fun CommentListRoot(
     ) {
         val comments = viewModel.comments.data.children
         LazyColumn(modifier = Modifier.fillMaxSize(), state = viewModel.listState) {
+            // Show post
             item {
-                // PostView takes only what it needs
-                PostView(
-                    post = viewModel.post,
-                    selected = selected,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
+                View(viewModel.post, selected) {
+                    val selftext = viewModel.post.data.selftext.html()
+                    if (selftext.isNotBlank()) {
+                        Column {
+                            Text(
+                                viewModel.post.data.author.username,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.clickable(onClick = {
+                                    navController.navigate(ProfileRoute(viewModel.post.data.author.username))
+                                })
+                            )
+                            SimpleMarkdown(selftext)
+                        }
+                    }
+                }
 
                 HorizontalDivider()
             }

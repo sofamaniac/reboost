@@ -46,7 +46,7 @@ fun PostHeader(
         if (showSubredditIcon) {
             SubredditIcon(
                 post.data.subreddit.name,
-                modifier = modifier
+                modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
                     .clickable(onClick = {

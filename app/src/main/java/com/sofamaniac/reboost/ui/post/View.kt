@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -38,29 +37,24 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
     when (post.data.kind) {
         Kind.Image -> {
-            PostImage(post)
+            PostImage(post, Modifier.fillMaxWidth())
         }
 
         Kind.Video -> {
-            PostVideo(post)
+            PostVideo(post, Modifier.fillMaxWidth())
         }
 
         Kind.Link -> {
-            Text(
-                post.data.url.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = modifier,
-            )
+            // TODO check if there is a preview, if not show the link
         }
 
         else -> {
-            if (post.data.selftext.html().isNotEmpty()) {
+            val selftext = post.data.selftext.html()
+            if (selftext.isNotBlank()) {
                 SimpleMarkdown(
-                    markdown = post.data.selftext.html(),
+                    markdown = selftext,
                     maxLines = 6,
-                    modifier = modifier,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
         }
@@ -139,6 +133,20 @@ fun Post.scoreString(): AnnotatedString {
     }
 }
 
+/**
+ * Composable function that displays a single post in a column format.
+ *
+ * This function creates a view for a given [Post], including its header,
+ * content, and bottom row of actions. It handles navigation to the full
+ * post view.
+ *
+ * @param post The [Post] data to display.
+ * @param selected A [MutableIntState] that holds the index of the current tab.
+ * @param modifier Modifier for the root layout of the post.
+ * @param showSubredditIcon Whether to display the subreddit icon in the header. Defaults to true.
+ * @param clickable Whether the post is clickable to navigate to the full post view. Defaults to true.
+ * @param body A composable lambda that defines the main content/body of the post (e.g., text, image). It should manage the horizontal padding itself
+ */
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun View(
@@ -147,11 +155,14 @@ fun View(
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
     clickable: Boolean = true,
+    body: @Composable () -> Unit,
 ) {
-    val modifier = Modifier.padding(horizontal = 4.dp)
+    // We do not apply the padding on the column, but on each of its children except [body]
+    // to have images that take the full width
+    val modifier = Modifier.padding(horizontal = 16.dp)
     val navController = LocalNavController.current!!
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = clickable, onClick = {
                 navController.navigate(com.sofamaniac.reboost.PostRoute(post.data.permalink))
@@ -171,7 +182,7 @@ fun View(
             modifier = modifier,
             enablePreview = enablePreview,
         )
-        PostBody(post)
+        body()
         BottomRow(post, modifier)
     }
 }

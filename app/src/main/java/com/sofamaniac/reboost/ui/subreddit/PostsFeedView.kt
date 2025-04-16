@@ -53,6 +53,7 @@ import com.sofamaniac.reboost.reddit.post.PostRepository
 import com.sofamaniac.reboost.reddit.post.PostsSource
 import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.Timeframe
+import com.sofamaniac.reboost.ui.post.PostBody
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
 
@@ -160,7 +161,9 @@ fun PostFeedViewer(
         ) {
             items(count = posts.itemCount, key = posts.itemKey { it.data.id.id }) { index ->
                 posts[index]?.let { post ->
-                    View(post, selected, showSubredditIcon = showSubredditIcon)
+                    View(post, selected, showSubredditIcon = showSubredditIcon) {
+                        PostBody(post)
+                    }
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
