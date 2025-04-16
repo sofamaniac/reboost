@@ -40,7 +40,13 @@ fun mapColor(color: String): Color {
         return when (color) {
             "light" -> Color.White
             "dark" -> Color.DarkGray
-            else -> Color(color.toColorInt())
+            "transparent" -> Color.Transparent
+            else -> try {
+                Color(color.toColorInt())
+            } catch (e: Exception) {
+                Log.e("Flair.mapColor", "Unknown color: $color")
+                Color.Black
+            }
         }
     } else {
         return Color.Gray
