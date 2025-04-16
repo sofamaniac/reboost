@@ -1,12 +1,17 @@
 package com.sofamaniac.reboost.ui.post
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +20,7 @@ import androidx.compose.runtime.MutableIntState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -27,6 +33,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
+import com.sofamaniac.reboost.reddit.post.MediaMetadata
 import com.sofamaniac.reboost.ui.Flair
 import com.sofamaniac.reboost.ui.SimpleMarkdown
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -48,6 +55,10 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
             // TODO check if there is a preview, if not show the link
         }
 
+        Kind.Gallery -> {
+            PostGallery(post, Modifier.fillMaxWidth())
+        }
+
         else -> {
             val selftext = post.data.selftext.html()
             if (selftext.isNotBlank()) {
@@ -58,6 +69,44 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun PostGallery(post: Post, modifier: Modifier = Modifier) {
+    val current = rememberPagerState(initialPage = 0, pageCount = { post.data.galleryData.size })
+    val minRatio = post.data.media.mediaMetadata.map { metadata ->
+        val data = metadata.value
+        when (data) {
+            is MediaMetadata.Image -> data.s!!.ratio
+            is MediaMetadata.Gif -> data.s!!.ratio
+            else -> 1f
+        }
+    }.min()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(minRatio),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        HorizontalPager(state = current, modifier = Modifier.fillMaxSize()) { page ->
+            val mediaId = post.data.galleryData[page].mediaId
+            val metadata: MediaMetadata? = post.data.media.mediaMetadata[mediaId]
+            if (metadata != null) {
+                when (metadata) {
+                    is MediaMetadata.Image -> ImageView(metadata)
+                    is MediaMetadata.Gif -> ImageView(metadata)
+                    else -> {
+                        Text("No luck my friend (${metadata.javaClass.simpleName})")
+                    }
+                }
+            }
+        }
+        Text(
+            "${current.currentPage + 1}/${post.data.galleryData.size}",
+            modifier = Modifier.background(Color.Black.copy(alpha = 0.6f))
+        )
     }
 }
 

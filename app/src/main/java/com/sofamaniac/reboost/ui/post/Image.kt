@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.reddit.Post
+import com.sofamaniac.reboost.reddit.post.MediaMetadata
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -65,3 +66,38 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
         it.placeholder(Color.Gray.toArgb().toDrawable())
     }
 }
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun ImageView(metadata: MediaMetadata.Image, modifier: Modifier = Modifier) {
+    val url = metadata.s!!.url.toString()
+    val ratio = metadata.s.width.toFloat() / metadata.s.height.toFloat()
+    GlideImage(
+        model = url,
+        contentDescription = "Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(ratio)
+    )
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun ImageView(metadata: MediaMetadata.Gif, modifier: Modifier = Modifier) {
+    val url = metadata.s!!.gifUrl.toString()
+    val ratio = metadata.s.width.toFloat() / metadata.s.height.toFloat()
+    // TODO choose the proper one based on resolution
+    val previewUrl = metadata.preview[0].url.toString()
+    val context = LocalContext.current
+    GlideImage(
+        model = url,
+        contentDescription = "Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(ratio),
+        requestBuilderTransform = {
+            it.thumbnail(Glide.with(context).load(previewUrl))
+        }
+    )
+}
+
