@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Antoine Grimod
+ */
+
 package com.sofamaniac.reboost
 
 import androidx.compose.foundation.layout.Arrangement

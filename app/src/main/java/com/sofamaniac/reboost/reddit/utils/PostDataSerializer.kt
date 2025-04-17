@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Antoine Grimod
+ */
+
 package com.sofamaniac.reboost.reddit.utils
 
 import com.sofamaniac.reboost.reddit.post.PostData

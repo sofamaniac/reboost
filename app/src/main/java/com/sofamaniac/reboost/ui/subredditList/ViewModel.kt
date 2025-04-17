@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Antoine Grimod
+ */
+
 package com.sofamaniac.reboost.ui.subredditList
 
 import androidx.compose.foundation.lazy.LazyListState
