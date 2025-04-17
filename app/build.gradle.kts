@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
+    id("com.jaredsburrows.license")
 }
 
 android {
@@ -68,6 +69,28 @@ configurations {
     all {
         exclude(group = "org.jetbrains", module = "annotations-java5")
     }
+}
+
+
+licenseReport {
+    // Generate reports
+    generateCsvReport = false
+    generateHtmlReport = true
+    generateJsonReport = false
+    generateTextReport = false
+
+    // Copy reports - These options are ignored for Java projects
+    copyCsvReportToAssets = false
+    copyHtmlReportToAssets = true
+    copyJsonReportToAssets = false
+    copyTextReportToAssets = false
+    useVariantSpecificAssetDirs = false
+
+    // Ignore licenses for certain artifact patterns
+    //ignoredPatterns = emptyList()
+
+    // Show versions in the report - default is false
+    showVersions = true
 }
 
 

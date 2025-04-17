@@ -63,6 +63,12 @@ class PostRoute(val post_permalink: String) : Route {
     override val title: String = "Post"
 }
 
+@Serializable
+object LicensesRoute : Route {
+    override val route: String = "Licenses"
+    override val title: String = "Licenses"
+}
+
 interface Route {
     val route: String
     val title: String
