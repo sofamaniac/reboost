@@ -28,11 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 
 @Composable
 fun BottomBar(
-    navController: NavController,
     selected: MutableIntState,
     modifier: Modifier = Modifier
 ) {
@@ -45,7 +43,7 @@ fun BottomBar(
     )
     CustomNavigationBar(modifier = Modifier.fillMaxWidth()) {
         for ((index, tab) in tabs.withIndex()) {
-            TabButton(index, navController, selected, tab.first, tab.second, tab.second.title)
+            TabButton(index, selected, tab.first, tab.second, tab.second.title)
         }
     }
 }
@@ -53,13 +51,13 @@ fun BottomBar(
 @Composable
 private fun TabButton(
     index: Int,
-    navController: NavController,
     selected: MutableIntState,
     icon: ImageVector,
     route: Any,
     description: String,
     modifier: Modifier = Modifier
 ) {
+    val navController = LocalNavController.current!!
     IconButton(
         onClick = {
             selected.intValue = index

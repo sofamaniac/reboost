@@ -33,7 +33,7 @@ fun SubredditViewer(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
         topBar = { viewModel.TopBar(rememberDrawerState(DrawerValue.Closed), scrollBehavior) },
-        bottomBar = { BottomBar(navController, selected) },
+        bottomBar = { BottomBar(selected) },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
         PostFeedViewer(
