@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -55,11 +59,11 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.subreddit.SubredditDao
 import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
+import com.sofamaniac.reboost.ui.ProfileView
 import com.sofamaniac.reboost.ui.post.CommentsViewer
 import com.sofamaniac.reboost.ui.subreddit.HomeView
 import com.sofamaniac.reboost.ui.subreddit.HomeViewer
 import com.sofamaniac.reboost.ui.subreddit.PostFeedViewer
-import com.sofamaniac.reboost.ui.subreddit.SavedViewer
 import com.sofamaniac.reboost.ui.subreddit.SubredditView
 import com.sofamaniac.reboost.ui.subreddit.SubredditViewer
 import com.sofamaniac.reboost.ui.subredditList.SubredditListViewer
@@ -236,7 +240,12 @@ fun DrawerContent(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-
+            val navController = LocalNavController.current!!
+            IconButton(onClick = {
+                navController.navigate(LicensesRoute)
+            }) {
+                Icon(Icons.Default.Info, contentDescription = "About")
+            }
         }
     }
 }
@@ -291,7 +300,8 @@ fun NavigationGraph(
         }
         composable<ProfileRoute> { navBackStackEntry ->
             selected.intValue = 4
-            SavedViewer(navController, selected)
+            val user = navBackStackEntry.toRoute<ProfileRoute>().author
+            ProfileView(user, drawerState = rememberDrawerState(DrawerValue.Closed))
         }
         composable<PostRoute> { navBackStackEntry ->
             val post_permalink = navBackStackEntry.toRoute<PostRoute>().post_permalink
@@ -306,6 +316,9 @@ fun NavigationGraph(
             if (post != null) {
                 CommentsViewer(selected, post!!)
             }
+        }
+        composable<LicensesRoute> {
+            LicenseWebView()
         }
     }
 }
