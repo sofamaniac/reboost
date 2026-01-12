@@ -16,9 +16,9 @@ class Manager(context: android.content.Context) {
     var authManager: StoreManager private set
     var authRequest: AuthorizationRequest private set
     val authConfig = AuthConfig(
-        authorizationEndpoint = "https://ssl.reddit.com/api/v1/authorize",
-        tokenEndpoint = "https://ssl.reddit.com/api/v1/access_token",
-        redirectUri = "com.sofamaniac.reboost://callback",
+        authorizationEndpoint = "https://www.reddit.com/api/v1/authorize",
+        tokenEndpoint = "https://www.reddit.com/api/v1/access_token",
+        redirectUri = "com.sofamaniac.crabir://callback",
         clientId = BuildConfig.REDDIT_CLIENT_ID,
         /** Add all available scopes */
         scopes = enumValues<Scopes>().map { it.name.lowercase() }

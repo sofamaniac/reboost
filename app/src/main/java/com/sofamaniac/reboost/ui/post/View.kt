@@ -4,6 +4,7 @@
 
 package com.sofamaniac.reboost.ui.post
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,8 +33,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil3.compose.AsyncImage
+//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+//import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.post.Kind
@@ -43,7 +45,7 @@ import com.sofamaniac.reboost.ui.SimpleMarkdown
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
     when (post.data.kind) {
@@ -76,7 +78,7 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostGallery(post: Post, modifier: Modifier = Modifier) {
     val current = rememberPagerState(initialPage = 0, pageCount = { post.data.galleryData.size })
@@ -115,7 +117,7 @@ fun PostGallery(post: Post, modifier: Modifier = Modifier) {
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostInfo(
     post: Post,
@@ -150,9 +152,10 @@ fun PostInfo(
         if (hasThumbnail) {
             val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
             val uriHandler = LocalUriHandler.current
-            GlideImage(
-                model = thumbnailURL?.toUrl(),
-                contentDescription = "Thumbnail",
+            Log.d("PostInfo", "Rendering thumbnail $thumbnailURL")
+            AsyncImage(
+                model = thumbnailURL,
+                contentDescription = post.data.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.2f)
@@ -161,8 +164,20 @@ fun PostInfo(
                     .clickable(onClick = {
                         uriHandler.openUri(post.data.url.toString())
                     }),
-
-                )
+            )
+//            GlideImage(
+//                model = thumbnailURL?.toUrl(),
+//                contentDescription = "Thumbnail",
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth(fraction = 0.2f)
+//                    .aspectRatio(1f)
+//                    .clip(RoundedCornerShape(8.dp))
+//                    .clickable(onClick = {
+//                        uriHandler.openUri(post.data.url.toString())
+//                    }),
+//
+//                )
         }
     }
 }
@@ -200,7 +215,7 @@ fun Post.scoreString(): AnnotatedString {
  * @param clickable Whether the post is clickable to navigate to the full post view. Defaults to true.
  * @param body A composable lambda that defines the main content/body of the post (e.g., text, image). It should manage the horizontal padding itself
  */
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun View(
     post: Post,

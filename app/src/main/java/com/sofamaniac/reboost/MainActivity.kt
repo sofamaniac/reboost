@@ -1,9 +1,14 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 4:35 PM
+ *
  */
 
 package com.sofamaniac.reboost
 
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -12,26 +17,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -42,10 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -58,24 +47,29 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
-import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.reddit.subreddit.HomeRepository
 import com.sofamaniac.reboost.reddit.subreddit.SubredditDao
 import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
+import com.sofamaniac.reboost.reddit.subreddit.SubredditPostsRepository
 import com.sofamaniac.reboost.ui.ProfileView
+import com.sofamaniac.reboost.ui.drawer.DrawerContent
+import com.sofamaniac.reboost.ui.drawer.DrawerViewModel
 import com.sofamaniac.reboost.ui.post.CommentsViewer
-import com.sofamaniac.reboost.ui.subreddit.HomeView
 import com.sofamaniac.reboost.ui.subreddit.HomeViewer
-import com.sofamaniac.reboost.ui.subreddit.PostFeedViewer
-import com.sofamaniac.reboost.ui.subreddit.SubredditView
+import com.sofamaniac.reboost.ui.subreddit.PostFeedViewModel
 import com.sofamaniac.reboost.ui.subreddit.SubredditViewer
 import com.sofamaniac.reboost.ui.subredditList.SubredditListViewer
 import com.sofamaniac.reboost.ui.theme.ReboostTheme
-import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 
+
+@HiltAndroidApp
+class ReboostApp : Application()
 
 interface Tab {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +84,7 @@ interface Tab {
     )
 }
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var authState: Manager
@@ -171,6 +166,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -179,85 +175,34 @@ fun MainScreen(
     onLoginClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val accountsViewModel: AccountsViewModel = viewModel()
+    val drawerViewModel: DrawerViewModel = viewModel()
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(
-                authState.authManager,
-                onClick = {
-                    onLoginClicked()
-                    scope.launch { drawerState.close() }
-                },
+                viewModel = drawerViewModel,
             )
         },
     ) {
         NavigationGraph(
             navController,
+            drawerState,
+            accountsViewModel,
         )
     }
 }
 
-@Composable
-fun LoginButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Button(onClick = { onClick() }, modifier = modifier) {
-        Text(
-            "Login",
-            color = MaterialTheme.colorScheme.onPrimary
-        )
-    }
-}
-
-@Composable
-fun DrawerContent(
-    authManager: StoreManager,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    ModalDrawerSheet {
-        Column(
-            modifier = Modifier
-                .navigationBarsPadding()
-                .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
-        ) {
-            if (!authManager.loggedIn) {
-                Spacer(modifier = Modifier.padding(16.dp))
-                LoginButton(
-                    modifier = modifier.padding(16.dp),
-                    onClick = onClick
-                )
-            } else {
-                var username by remember { mutableStateOf("Anonymous") }
-                if (username == "Anonymous") {
-                    LaunchedEffect(username) {
-                        username =
-                            RedditAPI.service.getIdentity().body()?.username
-                                ?: "Anonymous"
-                    }
-                }
-                Text(
-                    "Hello $username!",
-                    modifier = modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            val navController = LocalNavController.current!!
-            IconButton(onClick = {
-                navController.navigate(LicensesRoute)
-            }) {
-                Icon(Icons.Default.Info, contentDescription = "About")
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
+    drawerState: DrawerState,
+    accountsViewModel: AccountsViewModel,
     modifier: Modifier = Modifier
 ) {
     val selected = remember { mutableIntStateOf(0) }
@@ -269,7 +214,11 @@ fun NavigationGraph(
     ) {
         composable<Home> {
             selected.intValue = 0
-            HomeViewer(navController, selected)
+            HomeViewer(
+                navController, drawerState, selected, accountsViewModel, PostFeedViewModel(
+                    HomeRepository()
+                )
+            )
         }
         composable<SubscriptionsRoute> {
             selected.intValue = 2
@@ -277,15 +226,28 @@ fun NavigationGraph(
         }
         composable<SearchRoute> {
             selected.intValue = 1
-            PostFeedViewer(HomeView(), navController, selected)
+            SubredditViewer(
+                SubredditName("artknights"),
+                navController, selected,
+                viewModel {
+                    PostFeedViewModel(
+                        SubredditPostsRepository(
+                            SubredditName("artknights")
+                        )
+                    )
+                }
+            )
         }
         composable<InboxRoute> {
             selected.intValue = 3
             SubredditViewer(
+                SubredditName("artknights"),
                 navController, selected,
                 viewModel {
-                    SubredditView(
-                        SubredditName("artknights")
+                    PostFeedViewModel(
+                        SubredditPostsRepository(
+                            SubredditName("artknights")
+                        )
                     )
                 }
             )
@@ -294,10 +256,13 @@ fun NavigationGraph(
             selected.intValue = 2
             val subreddit = navBackStackEntry.toRoute<SubredditRoute>().subreddit
             SubredditViewer(
+                SubredditName("artknights"),
                 navController, selected,
                 viewModel {
-                    SubredditView(
-                        SubredditName(subreddit)
+                    PostFeedViewModel(
+                        SubredditPostsRepository(
+                            SubredditName("artknights")
+                        )
                     )
                 }
             )

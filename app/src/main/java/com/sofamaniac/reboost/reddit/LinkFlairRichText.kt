@@ -10,8 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil3.compose.AsyncImage
+//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+//import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -42,10 +43,16 @@ data class LinkFlairRichtextEmoji(
     @SerialName("a") val emoji: String,
     @SerialName("u") val url: String,
 ) : LinkFlairRichtext() {
-    @OptIn(ExperimentalGlideComposeApi::class)
+    //@OptIn(ExperimentalGlideComposeApi::class)
     @Composable
     override fun View() {
-        GlideImage(
+//        GlideImage(
+//            model = url,
+//            contentDescription = emoji,
+//            contentScale = ContentScale.Fit,
+//            modifier = Modifier.height(16.dp)
+//        )
+        AsyncImage(
             model = url,
             contentDescription = emoji,
             contentScale = ContentScale.Fit,

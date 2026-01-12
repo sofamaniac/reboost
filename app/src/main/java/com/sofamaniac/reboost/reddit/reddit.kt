@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 4:52 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit
@@ -8,7 +12,9 @@ import android.content.Context
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.sofamaniac.reboost.BuildConfig
+import com.sofamaniac.reboost.accounts.AccountsRepositoryImpl
 import com.sofamaniac.reboost.auth.BasicAuthClient
+import com.sofamaniac.reboost.auth.RedditAuthenticator
 import com.sofamaniac.reboost.auth.StoreManager
 import com.sofamaniac.reboost.reddit.comment.CommentAPI
 import com.sofamaniac.reboost.reddit.post.PostAPI
@@ -17,19 +23,27 @@ import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.CommentsResponseSerializer
 import com.sofamaniac.reboost.reddit.utils.URISerializer
 import com.sofamaniac.reboost.reddit.utils.URLSerializer
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.ClientAuthentication
+import net.openid.appauth.TokenResponse
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.net.URI
@@ -48,7 +62,7 @@ val loggingInterceptor = HttpLoggingInterceptor().apply {
 
 private const val API_LIMIT = 100
 
-interface RedditAPIService : CommentAPI, PostAPI {
+interface RedditAPIService : CommentAPI, PostAPI, RedditAuthApi {
 
     @GET("api/v1/me.json")
     suspend fun getIdentity(): Response<Identity>
@@ -73,7 +87,7 @@ interface RedditAPIService : CommentAPI, PostAPI {
         @Query("sr_detail") srDetail: Boolean = true,
     ): Response<Listing<Post>>
 
-    @GET("/r/{subreddit}/about")
+    @GET("/r/{subreddit}/about.json")
     suspend fun getSubInfo(@Path("subreddit") subreddit: SubredditName): Response<Subreddit>
 
     @GET("user/{username}/about.json")
@@ -154,31 +168,46 @@ data class Identity(
 
 object RedditAPI {
     lateinit var service: RedditAPIService
+    lateinit var authService: AuthorizationService
     fun init(context: Context) {
+        authService = AuthorizationService(context)
         val contentType = "application/json".toMediaType()
         val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
+            coerceInputValues = true
             serializersModule = SerializersModule {
                 contextual(URL::class, URLSerializer)
                 contextual(URI::class, URISerializer)
             }
         }
+
+
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(json.asConverterFactory(contentType))
             .client(okhttpClient(context))
             .build()
         service = retrofit.create(RedditAPIService::class.java)
+
     }
 
     private fun okhttpClient(context: Context): OkHttpClient {
+        val accountsRepository = AccountsRepositoryImpl(context)
+
         return OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(context))
+            .addInterceptor(
+                RedditAuthenticator(
+                    accountsRepository,
+                    authService,
+                    BasicAuthClient(BuildConfig.REDDIT_CLIENT_ID)
+                )
+            )
+            //.addInterceptor(AuthInterceptor(context))
             .addInterceptor(RateLimitInterceptor())
-            .addInterceptor(loggingInterceptor)
             .addInterceptor(ForceJsonInterceptor())
             .addInterceptor(NetworkInterceptor())
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 }
@@ -187,20 +216,25 @@ class AuthInterceptor(context: Context) : Interceptor {
     private val authManager = StoreManager(context)
     private val authService = AuthorizationService(context)
     private val clientAuth: ClientAuthentication = BasicAuthClient(BuildConfig.REDDIT_CLIENT_ID)
+    private val accountsRepository = AccountsRepositoryImpl(context)
 
 
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val requestBuilder = chain.request().newBuilder()
         Log.d("AuthInterceptor", "intercept")
+        val activeAccount = runBlocking {
+            accountsRepository.activeAccount.last()
+        }
 
-        if (!authManager.authState.needsTokenRefresh) {
+
+        if (!activeAccount.auth.needsTokenRefresh) {
             Log.d("AuthInterceptor", "Refreshing not needed")
             requestBuilder.addHeader(
                 "Authorization",
-                "Bearer ${authManager.authState.accessToken}"
+                "Bearer ${activeAccount.auth.accessToken}"
             )
         } else {
-            authManager.authState.performActionWithFreshTokens(
+            activeAccount.auth.performActionWithFreshTokens(
                 authService,
                 clientAuth
             ) { accessToken, _, ex ->
@@ -208,7 +242,6 @@ class AuthInterceptor(context: Context) : Interceptor {
                     Log.e("AuthInterceptor", "Token refresh failed: $ex")
                 } else {
                     Log.d("AuthInterceptor", "Token refreshed successfully")
-                    authManager.update()
                     requestBuilder.addHeader("Authorization", "Bearer $accessToken")
                 }
                 Log.e("AuthInterceptor", "Token needs refresh")
@@ -224,8 +257,8 @@ class NetworkInterceptor : Interceptor {
         val response = chain.proceed(request)
 
         // Log the response body here for debugging
-        val responseBody = response.peekBody(Long.MAX_VALUE).string()
-        println("Response Body: $responseBody")
+        //val responseBody = response.peekBody(Long.MAX_VALUE).string()
+        //println("Response Body: $responseBody")
 
         return response
     }
@@ -293,4 +326,16 @@ class ForceJsonInterceptor : Interceptor {
         val request = headerRequest.newBuilder().url(url).build()
         return chain.proceed(request)
     }
+}
+
+
+interface RedditAuthApi {
+
+    @FormUrlEncoded
+    @POST("access_token")
+    fun refreshToken(
+        @Header("Authorization") basicAuth: String,
+        @Field("grant_type") grantType: String = "refresh_token",
+        @Field("refresh_token") refreshToken: String
+    ): Call<TokenResponse>
 }

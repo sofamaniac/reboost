@@ -18,25 +18,26 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.BottomBar
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
-import com.sofamaniac.reboost.reddit.subreddit.SubredditPostsRepository
 
-class SubredditView(val subreddit: SubredditName) : PostFeedViewModel(
-    title = subreddit.name, repository = SubredditPostsRepository(
-        subreddit
-    )
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubredditViewer(
+    subreddit: SubredditName,
     navController: NavController,
     selected: MutableIntState,
-    viewModel: SubredditView,
+    viewModel: PostFeedViewModel,
     modifier: Modifier = Modifier
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
-        topBar = { viewModel.TopBar(rememberDrawerState(DrawerValue.Closed), scrollBehavior) },
+        topBar = {
+            TopBar(
+                subreddit.name,
+                viewModel,
+                rememberDrawerState(DrawerValue.Closed), scrollBehavior,
+            )
+        },
         bottomBar = { BottomBar(selected) },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->

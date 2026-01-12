@@ -4,10 +4,8 @@
 
 package com.sofamaniac.reboost.reddit.utils
 
-import com.sofamaniac.reboost.reddit.Comment
 import com.sofamaniac.reboost.reddit.CommentsResponse
 import com.sofamaniac.reboost.reddit.Listing
-import com.sofamaniac.reboost.reddit.ListingData
 import com.sofamaniac.reboost.reddit.More
 import com.sofamaniac.reboost.reddit.Post
 import com.sofamaniac.reboost.reddit.Thing
@@ -48,7 +46,7 @@ object CommentsResponseSerializer : KSerializer<CommentsResponse> {
                         element[1]
                     )
 
-                    val more = if (commentListing.data.children.last() is More) {
+                    val more = if (commentListing.data.children.lastOrNull() is More) {
                         val last = commentListing.data.children.last() as More
                         last
                     } else {

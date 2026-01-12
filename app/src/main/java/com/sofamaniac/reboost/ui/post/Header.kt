@@ -23,7 +23,7 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.ProfileRoute
 import com.sofamaniac.reboost.reddit.Post
@@ -32,7 +32,7 @@ import com.sofamaniac.reboost.ui.formatElapsedTimeLocalized
 import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostHeader(
     post: Post,

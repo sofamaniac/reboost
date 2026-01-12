@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Menu
@@ -32,9 +32,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,18 +43,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.paging.LoadState
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.sofamaniac.reboost.Tab
-import com.sofamaniac.reboost.reddit.post.PostRepository
-import com.sofamaniac.reboost.reddit.post.PostsSource
 import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.Timeframe
 import com.sofamaniac.reboost.ui.post.PostBody
@@ -64,70 +56,74 @@ import kotlinx.coroutines.launch
 /**
  * Data class representing the current state of a SubredditViewer
  */
-abstract class PostFeedViewModel(
-    val title: String = "",
-    val repository: PostRepository,
-    initialSort: Sort = Sort.Best,
-    initialTimeframe: Timeframe? = null,
-) : Tab, ViewModel() {
-    var listState by mutableStateOf(LazyListState())
-    var sort by mutableStateOf(initialSort)
-    var timeframe by mutableStateOf(initialTimeframe)
-
-    // We keep a reference to the PostsSource in order to invalidate it when changing sort
-    private var postsSource: PostsSource? = null
-    var data = Pager(
-        config = PagingConfig(pageSize = 100),
-        initialKey = "",
-        pagingSourceFactory = {
-            PostsSource(repository).also {
-                postsSource = it
-            }
-        }
-    ).flow.cachedIn(viewModelScope)
-
-
-    /**
-     * Updates the current sorting criteria and optionally the timeframe.
-     *
-     * This function updates the internal `sort` and `timeframe` properties of the current object.
-     * It also triggers an update in the associated ViewModel if one is present.
-     *
-     * If the provided `sort` and `timeframe` are the same as the current values, the function
-     * will return early without performing any updates. This prevents unnecessary refresh operations.
-     *
-     * @param sort The new sorting criteria to apply.
-     * @param timeframe The new timeframe to apply, or null to clear the timeframe. Defaults to null.
-     *
-     * @see Sort
-     * @see com.sofamaniac.reboost.reddit.post.Timeframe
-     */
-    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
-        if (this.sort == sort && this.timeframe == timeframe) return
-        this.sort = sort
-        this.timeframe = timeframe
-        repository.updateSort(sort, timeframe)
-        postsSource?.invalidate()
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    override fun TopBar(
-        drawerState: DrawerState,
-        scrollBehavior: TopAppBarScrollBehavior?
-    ) {
-        TopBar(this, drawerState, scrollBehavior)
-    }
-
-    @Composable
-    override fun Content(
-        navController: NavController,
-        selected: MutableIntState,
-        modifier: Modifier
-    ) {
-        PostFeedViewer(this, navController, selected, modifier)
-    }
-}
+//abstract class PostFeedViewModel(
+//    val title: String = "",
+//    val repository: PostRepository,
+//    initialSort: Sort = Sort.Best,
+//    initialTimeframe: Timeframe? = null,
+//) : Tab, ViewModel() {
+//    var listState by mutableStateOf(LazyListState())
+//    var sort by mutableStateOf(initialSort)
+//    var timeframe by mutableStateOf(initialTimeframe)
+//
+//    // We keep a reference to the PostsSource in order to invalidate it when changing sort
+//    private var postsSource: PostsSource? = null
+//    var data = Pager(
+//        config = PagingConfig(pageSize = 100),
+//        initialKey = "",
+//        pagingSourceFactory = {
+//            PostsSource(repository).also {
+//                postsSource = it
+//            }
+//        }
+//    ).flow.cachedIn(viewModelScope)
+//
+//
+//    /**
+//     * Updates the current sorting criteria and optionally the timeframe.
+//     *
+//     * This function updates the internal `sort` and `timeframe` properties of the current object.
+//     * It also triggers an update in the associated ViewModel if one is present.
+//     *
+//     * If the provided `sort` and `timeframe` are the same as the current values, the function
+//     * will return early without performing any updates. This prevents unnecessary refresh operations.
+//     *
+//     * @param sort The new sorting criteria to apply.
+//     * @param timeframe The new timeframe to apply, or null to clear the timeframe. Defaults to null.
+//     *
+//     * @see Sort
+//     * @see com.sofamaniac.reboost.reddit.post.Timeframe
+//     */
+//    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
+//        if (this.sort == sort && this.timeframe == timeframe) return
+//        this.sort = sort
+//        this.timeframe = timeframe
+//        repository.updateSort(sort, timeframe)
+//        postsSource?.invalidate()
+//    }
+//
+//    @OptIn(ExperimentalMaterial3Api::class)
+//    @Composable
+//    override fun TopBar(
+//        drawerState: DrawerState,
+//        scrollBehavior: TopAppBarScrollBehavior?
+//    ) {
+//        TopBar(this, drawerState, scrollBehavior)
+//    }
+//
+//    @Composable
+//    override fun Content(
+//        navController: NavController,
+//        selected: MutableIntState,
+//        modifier: Modifier
+//    ) {
+//        PostFeedViewer(this, navController, selected, modifier)
+//    }
+//
+//    fun refresh() {
+//        postsSource?.invalidate()
+//    }
+//}
 
 /**
  * Composable function to display a list of posts from a subreddit.
@@ -144,11 +140,13 @@ fun PostFeedViewer(
     showSubredditIcon: Boolean = true
 ) {
 
-    LaunchedEffect(state.sort, state.timeframe) {
-        state.updateSort(state.sort, state.timeframe)
-    }
+//    LaunchedEffect(state.sort, state.timeframe) {
+//        state.updateSort(state.sort, state.timeframe)
+//    }
+    //val posts = state.data.collectAsLazyPagingItems()
     val posts = state.data.collectAsLazyPagingItems()
-    val listState = remember { state.listState }
+    //val listState = remember { state.listState }
+    val listState = rememberLazyListState()
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
         onRefresh = {
@@ -178,11 +176,13 @@ fun PostFeedViewer(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
+    title: String,
     state: PostFeedViewModel,
     drawerState: DrawerState,
     scrollBehavior: TopAppBarScrollBehavior?
 ) {
     val scope = rememberCoroutineScope()
+    val params = state.params.collectAsState()
     TopAppBar(
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -191,16 +191,16 @@ fun TopBar(
         ),
         title = {
             Column {
-                Text(state.title)
+                Text(title)
                 Row(
                     modifier = Modifier.padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(state.sort.toString(), style = MaterialTheme.typography.labelSmall)
-                    if (state.timeframe != null) {
+                    Text(params.value.sort.toString(), style = MaterialTheme.typography.labelSmall)
+                    if (params.value.timeframe != null) {
                         Text(".", style = MaterialTheme.typography.labelSmall)
                         Text(
-                            state.timeframe.toString(),
+                            params.value.timeframe.toString(),
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -232,7 +232,7 @@ fun TopBar(
 fun SortMenu(state: PostFeedViewModel) {
     var sortExpanded = remember { mutableStateOf(false) }
     var timeframeExpanded = remember { mutableStateOf(false) }
-    var chosenSort by remember { mutableStateOf(state.sort) }
+    var chosenSort by remember { mutableStateOf(state.params.value.sort) }
     Box {
         IconButton(onClick = { sortExpanded.value = true }) {
             Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")

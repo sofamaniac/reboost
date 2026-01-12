@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -17,18 +18,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Text
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import androidx.core.graphics.toColorInt
+import coil3.compose.AsyncImage
+//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.sofamaniac.reboost.AppDatabase
 import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.graphics.toColorInt
 
-@OptIn(ExperimentalGlideComposeApi::class)
+//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun SubredditIcon(subreddit: SubredditName, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -53,7 +53,12 @@ fun SubredditIcon(subreddit: SubredditName, modifier: Modifier = Modifier) {
         }
     }
     if (!entity?.iconImg.isNullOrBlank()) {
-        GlideImage(
+//        GlideImage(
+//            model = entity!!.iconImg,
+//            contentDescription = "${subreddit.name} icon",
+//            modifier
+//        )
+        AsyncImage(
             model = entity!!.iconImg,
             contentDescription = "${subreddit.name} icon",
             modifier

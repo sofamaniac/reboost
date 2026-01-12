@@ -4,38 +4,46 @@
 
 package com.sofamaniac.reboost.ui.subreddit
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.sofamaniac.reboost.AccountsViewModel
 import com.sofamaniac.reboost.BottomBar
-import com.sofamaniac.reboost.reddit.subreddit.HomeRepository
+import com.sofamaniac.reboost.accounts.RedditAccount
 
-
-class HomeView : PostFeedViewModel(title = "Home", repository = HomeRepository())
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeViewer(
     navController: NavController,
+    drawerState: DrawerState,
     selected: MutableIntState,
-    viewModel: HomeView = viewModel(factory = HomeViewModelFactory()),
-    modifier: Modifier = Modifier
+    accountsViewModel: AccountsViewModel,
+    viewModel: PostFeedViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val account by accountsViewModel.activeAccount.collectAsState(initial = RedditAccount.anonymous())
+    val posts = viewModel.data.collectAsLazyPagingItems()
+    LaunchedEffect(account) {
+        Log.d("HomeViewer", "account: $account")
+        posts.refresh()
+    }
     Scaffold(
-        topBar = { viewModel.TopBar(rememberDrawerState(DrawerValue.Closed), scrollBehavior) },
+        topBar = { TopBar("Home", viewModel, drawerState, scrollBehavior) },
         bottomBar = { BottomBar(selected) },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
@@ -47,13 +55,13 @@ fun HomeViewer(
         )
     }
 }
-
-class HomeViewModelFactory() : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeView::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return HomeView() as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
+//
+//class HomeViewModelFactory() : ViewModelProvider.Factory {
+//    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+//        if (modelClass.isAssignableFrom(HomeView::class.java)) {
+//            @Suppress("UNCHECKED_CAST")
+//            return HomeView() as T
+//        }
+//        throw IllegalArgumentException("Unknown ViewModel class")
+//    }
+//}
