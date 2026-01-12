@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:45 PM
+ *
  */
 
 package com.sofamaniac.reboost.ui.subredditList
@@ -53,7 +57,6 @@ import com.sofamaniac.reboost.reddit.RedditAPI
 import com.sofamaniac.reboost.reddit.Subreddit
 import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 import kotlinx.coroutines.launch
-import kotlin.collections.plus
 
 
 class SubscriptionState : Tab, ViewModel() {
@@ -175,6 +178,7 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
                         Row {
                             SubredditIcon(
                                 subs.data.display_name,
+                                subs.data.icon,
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)

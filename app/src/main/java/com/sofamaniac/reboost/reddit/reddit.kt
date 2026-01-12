@@ -2,7 +2,7 @@
  * *
  *  * Created by sofamaniac
  *  * Copyright (c) 2026 . All rights reserved.
- *  * Last modified 1/12/26, 4:52 PM
+ *  * Last modified 1/12/26, 10:52 PM
  *
  */
 
@@ -110,6 +110,7 @@ interface RedditAPIService : CommentAPI, PostAPI, RedditAuthApi {
         @Query("count") count: Int = 0,
         @Query("limit") limit: Int = API_LIMIT,
         @Query("t") timeframe: PostTimeframe? = null,
+        @Query("sr_detail") srDetail: Boolean = true,
     ): Response<Listing<Post>>
 
     /**

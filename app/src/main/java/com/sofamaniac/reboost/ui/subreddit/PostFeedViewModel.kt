@@ -1,6 +1,15 @@
+/*
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:10 PM
+ *
+ */
+
 package com.sofamaniac.reboost.ui.subreddit
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -10,6 +19,7 @@ import com.sofamaniac.reboost.reddit.post.PostRepository
 import com.sofamaniac.reboost.reddit.post.PostsSource
 import com.sofamaniac.reboost.reddit.post.Sort
 import com.sofamaniac.reboost.reddit.post.Timeframe
+import com.sofamaniac.reboost.reddit.subreddit.HomeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,26 +53,6 @@ class PostFeedViewModel(private val repository: PostRepository) : ViewModel() {
             viewModelScope
         )
 
-//    val posts: PagingData<Post> =
-//        Pager(
-//            config = PagingConfig(
-//                pageSize = 100,
-//                enablePlaceholders = false
-//            ),
-//            pagingSourceFactory = {
-//                PostsSource(
-//                    repository = repository,
-//                )
-//            }
-//        ).flow
-//            .cachedIn(viewModelScope)
-
-    fun refresh() {
-        _params.update {
-            it.copy(sort = it.sort)
-        }
-    }
-
     fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
         _params.update {
             if (it.sort == sort && it.timeframe == timeframe) it
@@ -71,5 +61,15 @@ class PostFeedViewModel(private val repository: PostRepository) : ViewModel() {
                 it.copy(sort = sort, timeframe = timeframe)
             }
         }
+    }
+}
+
+class HomeViewModelFactory : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(PostFeedViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return PostFeedViewModel(HomeRepository()) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

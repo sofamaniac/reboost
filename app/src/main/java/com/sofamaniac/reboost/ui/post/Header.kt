@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:45 PM
+ *
  */
 
 package com.sofamaniac.reboost.ui.post
@@ -50,6 +54,7 @@ fun PostHeader(
         if (showSubredditIcon) {
             SubredditIcon(
                 post.data.subreddit.name,
+                post.data.subredditDetails?.icon,
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)

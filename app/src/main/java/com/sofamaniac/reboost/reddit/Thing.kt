@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 11:40 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit

@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:36 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit.post
@@ -7,10 +11,11 @@ package com.sofamaniac.reboost.reddit.post
 import com.sofamaniac.reboost.reddit.AuthorInfo
 import com.sofamaniac.reboost.reddit.Flair
 import com.sofamaniac.reboost.reddit.Thumbnail
-import kotlinx.datetime.Instant
+import com.sofamaniac.reboost.reddit.subreddit.SubredditDetails
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.net.URL
+import kotlin.time.Instant
 
 @Serializable
 data class PostData(
@@ -26,6 +31,7 @@ data class PostData(
     val preview: Preview,
     val author: AuthorInfo,
     val subreddit: SubredditInfo,
+    val subredditDetails: SubredditDetails?,
     val thumbnail: Thumbnail,
     val score: Score,
     val selftext: Selftext,

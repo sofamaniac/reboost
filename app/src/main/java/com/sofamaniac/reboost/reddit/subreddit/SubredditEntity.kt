@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:44 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit.subreddit
 
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Entity
@@ -21,19 +24,13 @@ data class SubredditEntity(
     @ColumnInfo(name = "display_name") val displayName: SubredditName,
     @ColumnInfo(name = "display_name_prefixed") val displayNamePrefixed: String,
     @ColumnInfo(name = "icon_img") val iconImg: String,
-    @ColumnInfo(name = "primary_color") val primaryColor: String = "#aaaaaa",
+    @ColumnInfo(name = "primary_color") val primaryColor: String? = "#aaaaaa",
 ) {
     companion object {
         fun fromSubreddit(subreddit: Subreddit): SubredditEntity {
-            val iconUrl =
-                if (!subreddit.data.icon_img.isBlank()) subreddit.data.icon_img
-                else subreddit.data.community_icon ?: ""
-            if (iconUrl.isBlank()) {
-                Log.i(
-                    "SubredditEntity",
-                    "No icon found for subreddit ${subreddit.data.display_name}"
-                )
-            }
+            val iconUrl: String =
+                subreddit.data.community_icon ?: subreddit.data.icon_img
+                ?: ""
             return SubredditEntity(
                 id = subreddit.data.id,
                 name = subreddit.data.name,

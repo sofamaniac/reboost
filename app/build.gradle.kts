@@ -2,7 +2,7 @@
  * *
  *  * Created by sofamaniac
  *  * Copyright (c) 2026 . All rights reserved.
- *  * Last modified 1/12/26, 1:32 PM
+ *  * Last modified 1/12/26, 11:25 PM
  *
  */
 
@@ -17,6 +17,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.jaredsburrows.license")
     id("com.google.dagger.hilt.android")
+    id("tech.mappie.plugin")
 }
 
 android {
@@ -70,6 +71,16 @@ android {
         buildConfig = true
     }
 
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/MANIFEST.MF",
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+                "META-INF/*.kotlin_module"
+            )
+        }
+    }
 }
 
 
@@ -120,9 +131,13 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.core)
 
-    implementation("com.google.dagger:hilt-android:2.57.1")
-    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.57.2")
     ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0")
+
+
+    implementation("tech.mappie:mappie-api:2.3.0-2.3.0")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -145,11 +160,8 @@ dependencies {
 
     implementation(libs.androidx.paging.compose)
 
-    //implementation(libs.glide) //check for latest version
-//    implementation(libs.compose) // check for latest version
-//    annotationProcessor(libs.compiler) //check for latest version
-    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     // Parse HTML-encoded urls
     implementation(libs.commons.text)
@@ -166,28 +178,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
-
-    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
-    // See Add the KSP plugin to your project
     ksp(libs.androidx.room.compiler)
 
     // Render markdown
-    //implementation(libs.multiplatform.markdown.renderer.android)
-    // implementation(libs.multiplatform.markdown.renderer.m3)
     implementation("com.mikepenz:multiplatform-markdown-renderer-android:0.39.0")
     implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.39.0")
-//    implementation(libs.markwon.core) // Markwon core
-//    implementation(libs.markwon.html) // Optional: HTML support
-//    implementation(libs.markwon.image.glide) // Optional: Image support
-//    implementation(libs.markwon.linkify) // Optional: Link support
-//    implementation(libs.markwon.syntax.highlight) // Optional: Syntax highlighting (code blocks)
-//    implementation(libs.markwon.tables)
-//    implementation(libs.markwon.tasklist)
-//    implementation(libs.markwon.strikethrough)
-//
-
-    //implementation("io.noties.markwon:recycler:4.6.2") // Optional: If using RecyclerView
-    //implementation("org.commonmark:commonmark:0.21.0") // Required for syntax highlighting
-    //implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0") // Optional: Support for tables
-    //implementation("org.commonmark:commonmark-ext-heading-anchor:0.21.0") // Optional: Support for heading anchor
 }

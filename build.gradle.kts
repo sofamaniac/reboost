@@ -11,6 +11,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.3.0"
     id("com.jaredsburrows.license") version "0.9.8" apply false
     id("com.google.dagger.hilt.android") version "2.57.1" apply false
+    id("tech.mappie.plugin") version "2.3.0-2.3.0" apply true
 
 }
 

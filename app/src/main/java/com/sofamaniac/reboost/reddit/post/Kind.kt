@@ -18,13 +18,13 @@ enum class Kind {
 fun getKind(post: PostDataFlat): Kind {
     val kind = if (post.is_self) Kind.Self
     else if (post.is_video) Kind.Video
-    else if (post.isGallery || post.GalleryData != null) Kind.Gallery
+    else if (post.isGallery || post.galleryData != null) Kind.Gallery
     else if (post.is_meta) Kind.Meta
     else null
 
     if (kind != null) return kind
 
-    return when (post.post_hint) {
+    return when (post.postHint) {
         "image" -> Kind.Image
         "rich:video", "hosted:video" -> Kind.Video
         "link" -> Kind.Link

@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 5:08 PM
+ *
  */
 
 package com.sofamaniac.reboost.ui.post
@@ -215,7 +219,6 @@ fun Post.scoreString(): AnnotatedString {
  * @param clickable Whether the post is clickable to navigate to the full post view. Defaults to true.
  * @param body A composable lambda that defines the main content/body of the post (e.g., text, image). It should manage the horizontal padding itself
  */
-//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun View(
     post: Post,

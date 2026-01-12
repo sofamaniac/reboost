@@ -2,7 +2,7 @@
  * *
  *  * Created by sofamaniac
  *  * Copyright (c) 2026 . All rights reserved.
- *  * Last modified 1/12/26, 4:35 PM
+ *  * Last modified 1/12/26, 5:14 PM
  *
  */
 
@@ -48,7 +48,6 @@ import androidx.room.RoomDatabase
 import com.sofamaniac.reboost.auth.BasicAuthClient
 import com.sofamaniac.reboost.auth.Manager
 import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.subreddit.HomeRepository
 import com.sofamaniac.reboost.reddit.subreddit.SubredditDao
 import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
@@ -57,6 +56,7 @@ import com.sofamaniac.reboost.ui.ProfileView
 import com.sofamaniac.reboost.ui.drawer.DrawerContent
 import com.sofamaniac.reboost.ui.drawer.DrawerViewModel
 import com.sofamaniac.reboost.ui.post.CommentsViewer
+import com.sofamaniac.reboost.ui.subreddit.HomeViewModelFactory
 import com.sofamaniac.reboost.ui.subreddit.HomeViewer
 import com.sofamaniac.reboost.ui.subreddit.PostFeedViewModel
 import com.sofamaniac.reboost.ui.subreddit.SubredditViewer
@@ -214,10 +214,9 @@ fun NavigationGraph(
     ) {
         composable<Home> {
             selected.intValue = 0
+            val viewModel: PostFeedViewModel = viewModel(factory = HomeViewModelFactory())
             HomeViewer(
-                navController, drawerState, selected, accountsViewModel, PostFeedViewModel(
-                    HomeRepository()
-                )
+                navController, drawerState, selected, accountsViewModel, viewModel
             )
         }
         composable<SubscriptionsRoute> {
@@ -255,13 +254,15 @@ fun NavigationGraph(
         composable<SubredditRoute> { navBackStackEntry ->
             selected.intValue = 2
             val subreddit = navBackStackEntry.toRoute<SubredditRoute>().subreddit
+            val subredditName = SubredditName(subreddit)
             SubredditViewer(
-                SubredditName("artknights"),
-                navController, selected,
+                subredditName,
+                navController,
+                selected,
                 viewModel {
                     PostFeedViewModel(
                         SubredditPostsRepository(
-                            SubredditName("artknights")
+                            subredditName
                         )
                     )
                 }

@@ -1,81 +1,68 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:45 PM
+ *
  */
 
 package com.sofamaniac.reboost.ui.subreddit
 
-import android.util.Log
+//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
-//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.sofamaniac.reboost.AppDatabase
-import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.subreddit.SubredditEntity
+import com.sofamaniac.reboost.reddit.subreddit.SubredditIcon
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 //@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun SubredditIcon(subreddit: SubredditName, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val dao = db.subredditDao()
-    val entity by produceState<SubredditEntity?>(initialValue = null, subreddit) {
-        value = withContext(Dispatchers.IO) {
-            var temp = dao.getByName(subreddit)
-            if (temp?.iconImg.isNullOrBlank()) {
-                Log.d("SubredditIcon", "Not found in DB (${subreddit.name})")
-                val res = RedditAPI.service.getSubInfo(subreddit)
-                if (res.isSuccessful) {
-                    val entity = SubredditEntity.fromSubreddit(res.body()!!)
-                    Log.d("SubredditIcon", "Inserted into DB (${entity})")
-                    dao.insert(entity)
-                    temp = entity
-                }
-            } else {
-                Log.d("SubredditIcon", "Found in DB (${subreddit.name}) : ${temp?.iconImg}")
+fun SubredditIcon(
+    subreddit: SubredditName,
+    icon: SubredditIcon?,
+    modifier: Modifier = Modifier
+) {
+    when (icon) {
+        is SubredditIcon.Icon ->
+            AsyncImage(
+                model = icon.url,
+                contentDescription = "${subreddit.name} icon",
+                modifier
+            )
+
+        is SubredditIcon.Color ->
+            Box(
+                modifier = modifier
+                    .background(
+                        Color(icon.color.toColorInt()),
+                        shape = CircleShape
+                    )
+                    .border(width = 1.dp, color = Color.White, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("r")
             }
-            temp
-        }
-    }
-    if (!entity?.iconImg.isNullOrBlank()) {
-//        GlideImage(
-//            model = entity!!.iconImg,
-//            contentDescription = "${subreddit.name} icon",
-//            modifier
-//        )
-        AsyncImage(
-            model = entity!!.iconImg,
-            contentDescription = "${subreddit.name} icon",
-            modifier
-        )
-    } else if (!entity?.primaryColor.isNullOrBlank()) {
-        Box(
-            modifier = modifier
-                .background(
-                    Color(entity!!.primaryColor.toColorInt()),
-                    shape = CircleShape
-                )
-                .border(width = 1.dp, color = Color.White, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("r")
-        }
-    } else {
-        Box(modifier = modifier.background(Color.Gray, shape = CircleShape))
+
+        null ->
+            Box(
+                modifier = modifier
+                    .background(
+                        Color("black".toColorInt()),
+                        shape = CircleShape
+                    )
+                    .border(width = 1.dp, color = Color.White, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("r")
+            }
     }
 }

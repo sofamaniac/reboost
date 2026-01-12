@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 11:42 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit.post
@@ -8,20 +12,24 @@ import com.sofamaniac.reboost.reddit.AuthorInfo
 import com.sofamaniac.reboost.reddit.Flair
 import com.sofamaniac.reboost.reddit.LinkFlairRichtext
 import com.sofamaniac.reboost.reddit.Thumbnail
+import com.sofamaniac.reboost.reddit.subreddit.SubredditDetails
 import com.sofamaniac.reboost.reddit.subreddit.SubredditId
 import com.sofamaniac.reboost.reddit.subreddit.SubredditName
 import com.sofamaniac.reboost.reddit.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.reddit.utils.InstantAsFloatSerializer
 import com.sofamaniac.reboost.reddit.utils.MediaMetadataSerializer
 import com.sofamaniac.reboost.reddit.utils.TranscodedVideo
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
+import tech.mappie.api.ObjectMappie
 import java.net.URI
 import java.net.URL
+import java.util.Collections.emptyList
+import kotlin.time.Instant
+
 
 /** ID 36 of a post */
 @Serializable
@@ -43,51 +51,64 @@ data class PostDataFlat(
     @SerialName("name") val fullname: PostFullname,
     @SerialName("url") @Contextual val url: URL? = null,
     @SerialName("title") val title: String = "",
-    @SerialName("suggested_sort") val suggested_sort: String? = null,
-    @SerialName("num_comments") val num_comments: Int = 0,
-    @SerialName("over_18") val over_18: Boolean = false,
+    @SerialName("suggested_sort") val suggestedSort: String? = null,
+    @SerialName("num_comments") val numComments: Int = 0,
+    @SerialName("over_18") val over18: Boolean = false,
     @SerialName("permalink") val permalink: String = "",
-    @SerialName("post_hint") val post_hint: String? = null,
+    @SerialName("post_hint") val postHint: String? = null,
     @SerialName("pinned") val pinned: Boolean = false,
     @SerialName("preview") val preview: Preview? = null,
-    @SerialName("gallery_data") val GalleryData: GalleryData? = null,
+    @SerialName("gallery_data") val galleryData: GalleryData? = null,
 
-    // Author related fields
+
+    // ================================================ //
+    // AUTHOR INFORMATION
+    // ================================================ //
     @SerialName("author") val author: String? = "",
-    @SerialName("author_flair_background_color") val author_flair_background_color: String? = null,
-    @SerialName("author_flair_css_class") val author_flair_css_class: String? = null,
-    @SerialName("author_flair_richtext") val author_flair_richtext: List<LinkFlairRichtext> = emptyList(),
-    @SerialName("author_flair_template_id") val author_flair_template_id: String? = null,
-    @SerialName("author_flair_text") val author_flair_text: String? = null,
-    @SerialName("author_flair_text_color") val author_flair_text_color: String? = null,
-    @SerialName("author_flair_type") val author_flair_type: String? = null,
-    @SerialName("author_fullname") val author_fullname: String = "",
-    @SerialName("author_is_blocked") val author_is_blocked: Boolean = false,
-    @SerialName("author_patreon_flair") val author_patreon_flair: Boolean = false,
-    @SerialName("author_premium") val author_premium: Boolean = false,
+    @SerialName("author_fullname") val authorFullname: String = "",
+    @SerialName("author_is_blocked") val authorIsBlocked: Boolean = false,
+    @SerialName("author_patreon_flair") val authorPatreonFlair: Boolean = false,
+    @SerialName("author_premium") val authorPremium: Boolean = false,
+
+    // Author flair
+    @SerialName("author_flair_background_color") val authorFlairBackgroundColor: String? = null,
+    @SerialName("author_flair_css_class") val authorFlairCssClass: String? = null,
+    @SerialName("author_flair_richtext") val authorFlairRichtext: List<LinkFlairRichtext> = emptyList(),
+    @SerialName("author_flair_template_id") val authorFlairTemplateId: String? = null,
+    @SerialName("author_flair_text") val authorFlairText: String? = null,
+    @SerialName("author_flair_text_color") val authorFlairTextColor: String? = null,
+    @SerialName("author_flair_type") val authorFlairType: String? = null,
 
     // Approved info
     @SerialName("approved_at_utc") val approvedAtUtc: String? = null,
     @SerialName("approved_by") val approvedBy: String? = null,
 
     // Ban Info
-    @SerialName("banned_at_utc") val banned_at_utc: Instant? = null,
-    @SerialName("banned_by") val banned_by: String? = null,
+    @Serializable(with = InstantAsFloatSerializer::class)
+    @SerialName("banned_at_utc") val bannedAtUtc: Instant = Instant.DISTANT_FUTURE,
+    @SerialName("banned_by") val bannedBy: String? = null,
 
-    // Subreddit info
+    // ================================================ //
+    // SUBREDDIT INFORMATION
+    // ================================================ //
     @SerialName("subreddit") val subreddit: SubredditName,
-    @SerialName("subreddit_id") val subreddit_id: SubredditId,
-    @SerialName("subreddit_name_prefixed") val subreddit_name_prefixed: String = "",
-    @SerialName("subreddit_subscribers") val subreddit_subscribers: Int = 0,
-    @SerialName("subreddit_type") val subreddit_type: String = "",
+    @SerialName("subreddit_id") val subredditId: SubredditId,
+    @SerialName("subreddit_name_prefixed") val subredditNamePrefixed: String = "",
+    @SerialName("subreddit_subscribers") val subredditSubscribers: Int = 0,
+    @SerialName("subreddit_type") val subredditType: String = "",
+    @SerialName("sr_detail") val subredditDetails: SubredditDetails? = null,
 
-    // Thumbnail
+    // ================================================ //
+    // THUMBNAIL INFORMATION
+    // ================================================ //
     /** Can either be an URL, "self", "spoiler" */
     @SerialName("thumbnail") @Contextual val thumbnailUrl: URI? = null,
     @SerialName("thumbnail_height") val thumbnail_height: Int? = null,
     @SerialName("thumbnail_width") val thumbnail_width: Int? = null,
 
-    // Score
+    // ================================================ //
+    // SCORE INFORMATION
+    // ================================================ //
     @SerialName("downs") val downs: Int = 0,
     @SerialName("score") val scoreInt: Int = 0,
     @SerialName("ups") val ups: Int = 0,
@@ -146,7 +167,9 @@ data class PostDataFlat(
     @SerialName("is_self") val is_self: Boolean = false,
     @SerialName("is_video") val is_video: Boolean = false,
 
-    // Flair related fields
+    // ================================================ //
+    // FLAIR INFORMATION
+    // ================================================ //
     @SerialName("link_flair_background_color") val link_flair_background_color: String? = null,
     @SerialName("link_flair_css_class") val link_flair_css_class: String? = null,
     @SerialName("link_flair_richtext") val link_flair_richtext: List<LinkFlairRichtext> = emptyList(),
@@ -163,18 +186,21 @@ data class PostDataFlat(
     //@SerialName("secure_media") val secure_media: Map<String, String> = emptyMap(),
     @SerialName("secure_media_embed") val secure_media_embed: Map<String, String> = emptyMap(),
 
-    // Mod info
+    // ================================================ //
+    // MODERATION INFORMATION
+    // ================================================ //
     @SerialName("mod_note") val mod_note: String? = null,
     @SerialName("mod_reason_by") val mod_reason_by: String? = null,
     @SerialName("mod_reason_title") val mod_reason_title: String? = null,
     @SerialName("mod_reports") val mod_reports: List<String> = emptyList(),
-
-
     // Removal info
     @SerialName("removal_reason") val removal_reason: String? = null,
     @SerialName("removed_by") val removed_by: String? = null,
     @SerialName("removed_by_category") val removed_by_category: String? = null,
 
+    // ================================================ //
+    // OTHER INFORMATION
+    // ================================================ //
     @SerialName("no_follow") val no_follow: Boolean = false,
     @SerialName("num_crossposts") val num_crossposts: Int = 0,
     @SerialName("num_reports") val num_reports: Int? = null,
@@ -187,119 +213,102 @@ data class PostDataFlat(
     @SerialName("view_count") val view_count: String? = null,
     @SerialName("wls") val wls: Int? = null,
     @SerialName("allow_live_comments") val allowLiveComments: Boolean = false,
-) {
-    val authorInfo: AuthorInfo
-        get() {
-            return AuthorInfo(
-                username = author ?: "",
-                flair = Flair(
-                    text = author_flair_text ?: "",
-                    backgroundColor = author_flair_background_color ?: "",
-                    textColor = author_flair_text_color ?: "",
-                    richText = author_flair_richtext,
-                    type = author_flair_type ?: "",
-                ),
-                authorFullname = author_fullname,
-                isAuthorBlocked = author_is_blocked,
-                hasPatreonFlair = author_patreon_flair,
-                isAuthorPremium = author_premium,
-            )
-        }
-    val linkFlair: Flair
-        get() {
-            return Flair(
-                text = link_flair_text ?: "",
-                backgroundColor = link_flair_background_color ?: "",
-                textColor = link_flair_text_color ?: "",
-                richText = link_flair_richtext,
-                type = link_flair_type ?: "",
-            )
-        }
-    val thumbnail: Thumbnail
-        get() {
-            return Thumbnail(
-                uri = thumbnailUrl ?: URI(""),
-                width = thumbnail_width ?: 0,
-                height = thumbnail_height ?: 0
-            )
-        }
-    val score: Score
-        get() {
-            return Score(
-                ups = ups,
-                downs = downs,
-                score = scoreInt,
-                upvoteRatio = upvote_ratio,
-                hideScore = hide_score
-            )
-        }
-    val selftext: Selftext
-        get() {
-            return Selftext(
-                selftext = selftextRaw,
-                selftextHtml = selftext_html ?: ""
-            )
-        }
-    val kind: Kind
-        get() {
-            return getKind(this)
-        }
-    val subredditInfo: SubredditInfo
-        get() {
-            return SubredditInfo(
-                name = subreddit,
-                subredditId = subreddit_id,
-                subredditPrefixed = subreddit_name_prefixed,
-                subredditSubscribers = subreddit_subscribers,
-                subredditType = subreddit_type,
-            )
-        }
-    val mediaInfo: MediaInfo
-        get() {
-            return MediaInfo(
-                media = media,
-                mediaEmbed = media_embed,
-                mediaMetadata = media_metadata,
-                mediaOnly = media_only,
-            )
-        }
-    val relationship: Relationship
-        get() {
-            return Relationship(
-                clicked = clicked,
-                visited = visited,
-                saved = saved,
-                liked = likes
-            )
-        }
+)
 
-    fun toPostData(): PostData {
-        return PostData(
-            id = id,
-            url = url ?: URL(""),
-            permalink = permalink,
-            title = title,
-            suggestedSort = suggested_sort ?: "",
-            numComments = num_comments,
-            over18 = over_18,
-            preview = preview ?: Preview(),
-            author = authorInfo,
-            subreddit = subredditInfo,
-            thumbnail = thumbnail,
-            score = score,
-            selftext = selftext,
-            kind = kind,
-            linkFlair = linkFlair,
-            media = mediaInfo,
-            createdAt = created_utc,
-            edited = Instant.fromEpochSeconds(edited ?: 0),
-            relationship = relationship,
-            name = fullname,
-            domain = domain,
-            galleryData = GalleryData?.items ?: emptyList(),
-        )
+private fun PostDataFlat.toAuthorInfo() = AuthorInfo(
+    username = author ?: "",
+    flair = this.toAuthorFlair(),
+    authorFullname = authorFullname,
+    isAuthorBlocked = authorIsBlocked,
+    hasPatreonFlair = authorPatreonFlair,
+    isAuthorPremium = authorPremium
+)
+
+private fun PostDataFlat.toAuthorFlair() = Flair(
+    text = authorFlairText ?: "",
+    backgroundColor = authorFlairBackgroundColor ?: "",
+    textColor = authorFlairTextColor ?: "",
+    richText = authorFlairRichtext,
+    type = authorFlairType ?: ""
+)
+
+private fun PostDataFlat.toSubredditInfo() = SubredditInfo(
+    name = subreddit,
+    subredditId = subredditId,
+    subredditPrefixed = subredditNamePrefixed,
+    subredditSubscribers = subredditSubscribers,
+    subredditType = subredditType
+)
+
+private fun PostDataFlat.toThumbnail() = Thumbnail(
+    uri = thumbnailUrl ?: URI(""),
+    width = thumbnail_width ?: 0,
+    height = thumbnail_height ?: 0
+)
+
+private fun PostDataFlat.toScore() = Score(
+    ups = ups,
+    downs = downs,
+    score = scoreInt,
+    upvoteRatio = upvote_ratio,
+    hideScore = hide_score
+)
+
+private fun PostDataFlat.toSelftext() = Selftext(
+    selftext = selftextRaw,
+    selftextHtml = selftext_html ?: ""
+)
+
+private fun PostDataFlat.toLinkFlair() = Flair(
+    text = link_flair_text ?: "",
+    backgroundColor = link_flair_background_color ?: "",
+    textColor = link_flair_text_color ?: "",
+    richText = link_flair_richtext,
+    type = link_flair_type ?: ""
+)
+
+private fun PostDataFlat.toMediaInfo() = MediaInfo(
+    media = media,
+    mediaEmbed = media_embed,
+    mediaMetadata = media_metadata,
+    mediaOnly = media_only
+)
+
+private fun PostDataFlat.toRelationship() = Relationship(
+    clicked = clicked,
+    visited = visited,
+    saved = saved,
+    liked = likes
+)
+
+
+object PostDataMapper : ObjectMappie<PostDataFlat, PostData>() {
+
+    override fun map(from: PostDataFlat) = mapping {
+
+        PostData::name fromProperty from::fullname
+
+        PostData::url fromValue (from.url ?: URL(""))
+        PostData::suggestedSort fromValue (from.suggestedSort ?: "")
+        PostData::preview fromValue (from.preview ?: Preview())
+
+        PostData::author fromValue from.toAuthorInfo()
+        PostData::subreddit fromValue from.toSubredditInfo()
+        PostData::thumbnail fromValue from.toThumbnail()
+        PostData::score fromValue from.toScore()
+        PostData::selftext fromValue from.toSelftext()
+        PostData::linkFlair fromValue from.toLinkFlair()
+        PostData::media fromValue from.toMediaInfo()
+        PostData::relationship fromValue from.toRelationship()
+        PostData::kind fromValue getKind(from)
+
+        PostData::createdAt fromProperty from::created_utc
+        PostData::edited fromValue Instant.fromEpochSeconds(from.edited ?: 0)
+
+        PostData::galleryData fromValue (from.galleryData?.items ?: emptyList())
     }
 }
+
 
 //FIXME
 @Serializable

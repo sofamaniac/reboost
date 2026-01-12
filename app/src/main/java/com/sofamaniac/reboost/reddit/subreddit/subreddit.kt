@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 10:44 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit.subreddit
@@ -21,7 +25,13 @@ data class CommentContributionSettings(
 )
 
 fun dummySubredditData(): SubredditData {
-    return SubredditData(display_name = SubredditName(""), id = SubredditId(""), icon_img = "")
+    return SubredditData(
+        display_name = SubredditName(""),
+        id = SubredditId(""),
+        icon_img = "",
+        primary_color = "black",
+        key_color = "black",
+    )
 }
 // TODO sometimes, id, display_name and icon_img are missing
 
@@ -42,9 +52,9 @@ data class SubredditData(
     val allow_galleries: Boolean = false,
     val icon_size: List<Int>? = null,
     /** Primary color in the form "#ffffff" */
-    val primary_color: String = "",
+    val primary_color: String?,
     val active_user_count: Int? = null,
-    val icon_img: String = "",
+    val icon_img: String?,
     /** The name of the subreddit with the 'r/' prefix (e.g. "r/unixporn") */
     val display_name_prefixed: String = "",
     val accounts_active: Int? = null,
@@ -74,7 +84,7 @@ data class SubredditData(
     val user_flair_position: String? = null,
     val all_original_content: Boolean = false,
     val has_menu_widget: Boolean = false,
-    val key_color: String = "",
+    val key_color: String?,
     val can_assign_user_flair: Boolean = false,
     val created: Double = 0.0,
     val show_media_preview: Boolean = false,
@@ -117,4 +127,15 @@ data class SubredditData(
     val mobile_banner_image: String? = null,
     val user_is_contributor: Boolean = false,
     val allow_predictions_tournament: Boolean = false
-)
+) {
+    val icon: SubredditIcon
+        get() {
+            return when {
+                community_icon != null -> SubredditIcon.Icon(community_icon)
+                icon_img != null -> SubredditIcon.Icon(icon_img)
+                key_color != null -> SubredditIcon.Color(key_color)
+                primary_color != null -> SubredditIcon.Color(primary_color)
+                else -> SubredditIcon.Color("black")
+            }
+        }
+}

@@ -1,5 +1,9 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 5:18 PM
+ *
  */
 
 package com.sofamaniac.reboost.ui.subreddit
@@ -53,77 +57,6 @@ import com.sofamaniac.reboost.ui.post.PostBody
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
 
-/**
- * Data class representing the current state of a SubredditViewer
- */
-//abstract class PostFeedViewModel(
-//    val title: String = "",
-//    val repository: PostRepository,
-//    initialSort: Sort = Sort.Best,
-//    initialTimeframe: Timeframe? = null,
-//) : Tab, ViewModel() {
-//    var listState by mutableStateOf(LazyListState())
-//    var sort by mutableStateOf(initialSort)
-//    var timeframe by mutableStateOf(initialTimeframe)
-//
-//    // We keep a reference to the PostsSource in order to invalidate it when changing sort
-//    private var postsSource: PostsSource? = null
-//    var data = Pager(
-//        config = PagingConfig(pageSize = 100),
-//        initialKey = "",
-//        pagingSourceFactory = {
-//            PostsSource(repository).also {
-//                postsSource = it
-//            }
-//        }
-//    ).flow.cachedIn(viewModelScope)
-//
-//
-//    /**
-//     * Updates the current sorting criteria and optionally the timeframe.
-//     *
-//     * This function updates the internal `sort` and `timeframe` properties of the current object.
-//     * It also triggers an update in the associated ViewModel if one is present.
-//     *
-//     * If the provided `sort` and `timeframe` are the same as the current values, the function
-//     * will return early without performing any updates. This prevents unnecessary refresh operations.
-//     *
-//     * @param sort The new sorting criteria to apply.
-//     * @param timeframe The new timeframe to apply, or null to clear the timeframe. Defaults to null.
-//     *
-//     * @see Sort
-//     * @see com.sofamaniac.reboost.reddit.post.Timeframe
-//     */
-//    fun updateSort(sort: Sort, timeframe: Timeframe? = null) {
-//        if (this.sort == sort && this.timeframe == timeframe) return
-//        this.sort = sort
-//        this.timeframe = timeframe
-//        repository.updateSort(sort, timeframe)
-//        postsSource?.invalidate()
-//    }
-//
-//    @OptIn(ExperimentalMaterial3Api::class)
-//    @Composable
-//    override fun TopBar(
-//        drawerState: DrawerState,
-//        scrollBehavior: TopAppBarScrollBehavior?
-//    ) {
-//        TopBar(this, drawerState, scrollBehavior)
-//    }
-//
-//    @Composable
-//    override fun Content(
-//        navController: NavController,
-//        selected: MutableIntState,
-//        modifier: Modifier
-//    ) {
-//        PostFeedViewer(this, navController, selected, modifier)
-//    }
-//
-//    fun refresh() {
-//        postsSource?.invalidate()
-//    }
-//}
 
 /**
  * Composable function to display a list of posts from a subreddit.

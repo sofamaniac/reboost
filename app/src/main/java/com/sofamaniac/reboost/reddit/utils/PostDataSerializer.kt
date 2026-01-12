@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2025 Antoine Grimod
+ * *
+ *  * Created by sofamaniac
+ *  * Copyright (c) 2026 . All rights reserved.
+ *  * Last modified 1/12/26, 11:35 PM
+ *
  */
 
 package com.sofamaniac.reboost.reddit.utils
 
 import com.sofamaniac.reboost.reddit.post.PostData
 import com.sofamaniac.reboost.reddit.post.PostDataFlat
+import com.sofamaniac.reboost.reddit.post.PostDataMapper
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -33,8 +38,9 @@ object PostDataSerializer : KSerializer<PostData> {
         val element = jsonDecoder.decodeJsonElement()
         return when (element) {
             is JsonObject -> {
-                jsonDecoder.json.decodeFromJsonElement(PostDataFlat.serializer(), element)
-                    .toPostData()
+                val data =
+                    jsonDecoder.json.decodeFromJsonElement(PostDataFlat.serializer(), element)
+                PostDataMapper.map(data)
             }
 
             else -> {
