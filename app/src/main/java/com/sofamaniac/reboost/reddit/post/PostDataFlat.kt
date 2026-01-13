@@ -103,8 +103,8 @@ data class PostDataFlat(
     // ================================================ //
     /** Can either be an URL, "self", "spoiler" */
     @SerialName("thumbnail") @Contextual val thumbnailUrl: URI? = null,
-    @SerialName("thumbnail_height") val thumbnail_height: Int? = null,
-    @SerialName("thumbnail_width") val thumbnail_width: Int? = null,
+    @SerialName("thumbnail_height") val thumbnailHeight: Int? = null,
+    @SerialName("thumbnail_width") val thumbnailWidth: Int? = null,
 
     // ================================================ //
     // SCORE INFORMATION
@@ -112,25 +112,25 @@ data class PostDataFlat(
     @SerialName("downs") val downs: Int = 0,
     @SerialName("score") val scoreInt: Int = 0,
     @SerialName("ups") val ups: Int = 0,
-    @SerialName("upvote_ratio") val upvote_ratio: Double = 0.0,
-    @SerialName("hide_score") val hide_score: Boolean = false,
+    @SerialName("upvote_ratio") val upvoteRatio: Double = 0.0,
+    @SerialName("hide_score") val hideScore: Boolean = false,
 
     // Awards
     @SerialName("all_awardings") val allAwardings: List<String> = emptyList(),
     @SerialName("awarders") val awarders: List<String> = emptyList(),
     @SerialName("gilded") val gilded: Int = 0,
     @SerialName("gildings") val gildings: Map<String, Int> = emptyMap(),
-    @SerialName("top_awarded_type") val top_awarded_type: String? = null,
-    @SerialName("total_awards_received") val total_awards_received: Int = 0,
+    @SerialName("top_awarded_type") val topAwardedType: String? = null,
+    @SerialName("total_awards_received") val totalAwardsReceived: Int = 0,
 
     // Selftext
     @SerialName("selftext") val selftextRaw: String = "",
-    @SerialName("selftext_html") val selftext_html: String? = null,
+    @SerialName("selftext_html") val selftextHtml: String? = null,
 
     // Creation Info
     @SerialName("created") val created: Double = 0.0,
     @Serializable(with = InstantAsFloatSerializer::class)
-    @SerialName("created_utc") val created_utc: Instant = Instant.DISTANT_FUTURE,
+    @SerialName("created_utc") val createdUtc: Instant = Instant.DISTANT_FUTURE,
 
     // Relationship
     @SerialName("clicked") val clicked: Boolean = false,
@@ -144,73 +144,72 @@ data class PostDataFlat(
     @SerialName("edited") val edited: Long? = null,
     @SerialName("hidden") val hidden: Boolean = false,
     @SerialName("locked") val locked: Boolean = false,
-    @SerialName("is_crosspostable") val is_crosspostable: Boolean = false,
-    @SerialName("is_created_from_ads_ui") val is_created_from_ads_ui: Boolean = false,
-    @SerialName("can_gild") val can_gild: Boolean = false,
-    @SerialName("can_mod_post") val can_mod_post: Boolean = false,
+    @SerialName("is_crosspostable") val isCrosspostable: Boolean = false,
+    @SerialName("is_created_from_ads_ui") val isCreatedFromAdsUi: Boolean = false,
+    @SerialName("can_gild") val gildable: Boolean = false,
+    @SerialName("can_mod_post") val canModPost: Boolean = false,
     @SerialName("spoiler") val spoiler: Boolean = false,
     @SerialName("stickied") val stickied: Boolean = false,
 
     @SerialName("category") val category: String? = null,
-    @SerialName("content_categories") val content_categories: List<String>? = null,
-    @SerialName("contest_mode") val contest_mode: Boolean = false,
-    @SerialName("discussion_type") val discussion_type: String? = null,
+    @SerialName("content_categories") val contentCategories: List<String>? = null,
+    @SerialName("contest_mode") val contestMode: Boolean = false,
+    @SerialName("discussion_type") val discussionType: String? = null,
     @SerialName("distinguished") val distinguished: String? = null,
     @SerialName("domain") val domain: String = "",
 
     // Kind
     @SerialName("is_gallery") val isGallery: Boolean = false,
-    @SerialName("is_meta") val is_meta: Boolean = false,
-    @SerialName("is_original_content") val is_original_content: Boolean = false,
-    @SerialName("is_reddit_media_domain") val is_reddit_media_domain: Boolean = false,
-    @SerialName("is_robot_indexable") val is_robot_indexable: Boolean = false,
-    @SerialName("is_self") val is_self: Boolean = false,
-    @SerialName("is_video") val is_video: Boolean = false,
+    @SerialName("is_meta") val isMeta: Boolean = false,
+    @SerialName("is_original_content") val isOriginalContent: Boolean = false,
+    @SerialName("is_reddit_media_domain") val isRedditMediaDomain: Boolean = false,
+    @SerialName("is_self") val isSelfPost: Boolean = false,
+    @SerialName("is_video") val isVideo: Boolean = false,
 
     // ================================================ //
     // FLAIR INFORMATION
     // ================================================ //
-    @SerialName("link_flair_background_color") val link_flair_background_color: String? = null,
-    @SerialName("link_flair_css_class") val link_flair_css_class: String? = null,
-    @SerialName("link_flair_richtext") val link_flair_richtext: List<LinkFlairRichtext> = emptyList(),
-    @SerialName("link_flair_text") val link_flair_text: String? = null,
-    @SerialName("link_flair_text_color") val link_flair_text_color: String? = null,
-    @SerialName("link_flair_type") val link_flair_type: String? = null,
+    @SerialName("link_flair_background_color") val linkFlairBackgroundColor: String? = null,
+    @SerialName("link_flair_css_class") val linkFlairCssClass: String? = null,
+    @SerialName("link_flair_richtext") val linkFlairRichtext: List<LinkFlairRichtext> = emptyList(),
+    @SerialName("link_flair_text") val linkFlairText: String? = null,
+    @SerialName("link_flair_text_color") val linkFlairTextColor: String? = null,
+    @SerialName("link_flair_type") val linkFlairType: String? = null,
 
     // Media
     @SerialName("media") val media: Media? = null,
-    @SerialName("media_embed") val media_embed: Map<String, String> = emptyMap(),
-    @SerialName("media_metadata") val media_metadata: Map<String, MediaMetadata?> = emptyMap(),
-    @SerialName("media_only") val media_only: Boolean = false,
+    @SerialName("media_embed") val mediaEmbed: Map<String, String> = emptyMap(),
+    @SerialName("media_metadata") val mediaMetadata: Map<String, MediaMetadata?> = emptyMap(),
+    @SerialName("media_only") val isMediaOnly: Boolean = false,
     // FIXME
     //@SerialName("secure_media") val secure_media: Map<String, String> = emptyMap(),
-    @SerialName("secure_media_embed") val secure_media_embed: Map<String, String> = emptyMap(),
+    @SerialName("secure_media_embed") val secureMediaEmbed: Map<String, String> = emptyMap(),
 
     // ================================================ //
     // MODERATION INFORMATION
     // ================================================ //
-    @SerialName("mod_note") val mod_note: String? = null,
-    @SerialName("mod_reason_by") val mod_reason_by: String? = null,
-    @SerialName("mod_reason_title") val mod_reason_title: String? = null,
-    @SerialName("mod_reports") val mod_reports: List<String> = emptyList(),
+    @SerialName("mod_note") val modNote: String? = null,
+    @SerialName("mod_reason_by") val modReasonBy: String? = null,
+    @SerialName("mod_reason_title") val modReasonTitle: String? = null,
+    @SerialName("mod_reports") val modReports: List<String> = emptyList(),
     // Removal info
-    @SerialName("removal_reason") val removal_reason: String? = null,
-    @SerialName("removed_by") val removed_by: String? = null,
-    @SerialName("removed_by_category") val removed_by_category: String? = null,
+    @SerialName("removal_reason") val removalReason: String? = null,
+    @SerialName("removed_by") val removedBy: String? = null,
+    @SerialName("removed_by_category") val removedByCategory: String? = null,
 
     // ================================================ //
     // OTHER INFORMATION
     // ================================================ //
-    @SerialName("no_follow") val no_follow: Boolean = false,
-    @SerialName("num_crossposts") val num_crossposts: Int = 0,
-    @SerialName("num_reports") val num_reports: Int? = null,
+    @SerialName("no_follow") val noFollow: Boolean = false,
+    @SerialName("num_crossposts") val numCrossposts: Int = 0,
+    @SerialName("num_reports") val numReports: Int? = null,
     @SerialName("pwls") val pwls: Int? = null,
     @SerialName("quarantine") val quarantine: Boolean = false,
-    @SerialName("report_reasons") val report_reasons: String? = null,
-    @SerialName("send_replies") val send_replies: Boolean = false,
-    @SerialName("treatment_tags") val treatment_tags: List<String> = emptyList(),
-    @SerialName("user_reports") val user_reports: List<String> = emptyList(),
-    @SerialName("view_count") val view_count: String? = null,
+    @SerialName("report_reasons") val reportReasons: String? = null,
+    @SerialName("send_replies") val sendReplies: Boolean = false,
+    @SerialName("treatment_tags") val treatmentTags: List<String> = emptyList(),
+    @SerialName("user_reports") val userReports: List<String> = emptyList(),
+    @SerialName("view_count") val viewCount: String? = null,
     @SerialName("wls") val wls: Int? = null,
     @SerialName("allow_live_comments") val allowLiveComments: Boolean = false,
 )
@@ -242,36 +241,36 @@ private fun PostDataFlat.toSubredditInfo() = SubredditInfo(
 
 private fun PostDataFlat.toThumbnail() = Thumbnail(
     uri = thumbnailUrl ?: URI(""),
-    width = thumbnail_width ?: 0,
-    height = thumbnail_height ?: 0
+    width = thumbnailWidth ?: 0,
+    height = thumbnailHeight ?: 0
 )
 
 private fun PostDataFlat.toScore() = Score(
     ups = ups,
     downs = downs,
     score = scoreInt,
-    upvoteRatio = upvote_ratio,
-    hideScore = hide_score
+    upvoteRatio = upvoteRatio,
+    hideScore = hideScore
 )
 
 private fun PostDataFlat.toSelftext() = Selftext(
     selftext = selftextRaw,
-    selftextHtml = selftext_html ?: ""
+    selftextHtml = selftextHtml ?: ""
 )
 
 private fun PostDataFlat.toLinkFlair() = Flair(
-    text = link_flair_text ?: "",
-    backgroundColor = link_flair_background_color ?: "",
-    textColor = link_flair_text_color ?: "",
-    richText = link_flair_richtext,
-    type = link_flair_type ?: ""
+    text = linkFlairText ?: "",
+    backgroundColor = linkFlairBackgroundColor ?: "",
+    textColor = linkFlairTextColor ?: "",
+    richText = linkFlairRichtext,
+    type = linkFlairType ?: ""
 )
 
 private fun PostDataFlat.toMediaInfo() = MediaInfo(
     media = media,
-    mediaEmbed = media_embed,
-    mediaMetadata = media_metadata,
-    mediaOnly = media_only
+    mediaEmbed = mediaEmbed,
+    mediaMetadata = mediaMetadata,
+    mediaOnly = isMediaOnly
 )
 
 private fun PostDataFlat.toRelationship() = Relationship(
@@ -302,7 +301,7 @@ object PostDataMapper : ObjectMappie<PostDataFlat, PostData>() {
         PostData::relationship fromValue from.toRelationship()
         PostData::kind fromValue getKind(from)
 
-        PostData::createdAt fromProperty from::created_utc
+        PostData::createdAt fromProperty from::createdUtc
         PostData::edited fromValue Instant.fromEpochSeconds(from.edited ?: 0)
 
         PostData::galleryData fromValue (from.galleryData?.items ?: emptyList())
