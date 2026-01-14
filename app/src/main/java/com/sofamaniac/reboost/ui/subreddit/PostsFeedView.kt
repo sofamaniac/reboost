@@ -51,8 +51,8 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.sofamaniac.reboost.reddit.post.Sort
-import com.sofamaniac.reboost.reddit.post.Timeframe
+import com.sofamaniac.reboost.data.remote.dto.post.Sort
+import com.sofamaniac.reboost.data.remote.dto.Timeframe
 import com.sofamaniac.reboost.ui.post.PostBody
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
@@ -68,7 +68,6 @@ import kotlinx.coroutines.launch
 fun PostFeedViewer(
     state: PostFeedViewModel,
     navController: NavController,
-    selected: MutableIntState,
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true
 ) {
@@ -94,9 +93,9 @@ fun PostFeedViewer(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState,
         ) {
-            items(count = posts.itemCount, key = posts.itemKey { it.data.id.id }) { index ->
+            items(count = posts.itemCount, key = posts.itemKey { it.id.id }) { index ->
                 posts[index]?.let { post ->
-                    View(post, selected, showSubredditIcon = showSubredditIcon) {
+                    View(post,  showSubredditIcon = showSubredditIcon, visitPost = state::visitPost) {
                         PostBody(post)
                     }
                     HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())

@@ -53,8 +53,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.sofamaniac.reboost.Tab
-import com.sofamaniac.reboost.reddit.RedditAPI
-import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.data.remote.api.RedditAPI
+import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
 import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 import kotlinx.coroutines.launch
 
@@ -66,7 +66,7 @@ class SubscriptionState : Tab, ViewModel() {
     var after: String? by mutableStateOf("")
 
     suspend fun load() {
-        val apiService = RedditAPI.service
+        val apiService = RedditAPI().service
         while (after != null) {
             val response = apiService.getSubreddits(after)
             val subs: List<Subreddit>? = response.body()?.data?.children

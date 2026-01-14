@@ -30,14 +30,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.sofamaniac.reboost.Home
 import com.sofamaniac.reboost.LicensesRoute
 import com.sofamaniac.reboost.LocalNavController
-import com.sofamaniac.reboost.accounts.RedditAccount
+import com.sofamaniac.reboost.domain.model.RedditAccount
 import java.util.Collections.emptyList
 
 @Composable
 fun DrawerContent(
     viewModel: DrawerViewModel,
+    onAccountChange: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val authLauncher = rememberLauncherForActivityResult(
@@ -61,6 +64,7 @@ fun DrawerContent(
                         .padding(16.dp)
                         .clickable(onClick = {
                             viewModel.setActiveAccount(account.id)
+                            onAccountChange()
                         })
                 )
             }

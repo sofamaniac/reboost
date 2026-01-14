@@ -4,6 +4,8 @@
 
 package com.sofamaniac.reboost
 
+import com.sofamaniac.reboost.data.remote.dto.post.MediaMetadata
+import kotlinx.serialization.json.Json
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -19,3 +21,4 @@ class ExampleUnitTest {
         assertEquals(4, 2 + 2)
     }
 }
+

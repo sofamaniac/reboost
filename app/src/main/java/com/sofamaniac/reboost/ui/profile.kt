@@ -4,12 +4,7 @@
 
 package com.sofamaniac.reboost.ui
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,20 +17,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.sofamaniac.reboost.BottomBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,22 +54,21 @@ fun ProfileInfo(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ProfileView(user: String, drawerState: DrawerState, modifier: Modifier = Modifier) {
+fun ProfileView(user: String, selected: State<Int>, drawerState: DrawerState, modifier: Modifier = Modifier) {
     var currentTab = rememberPagerState(initialPage = 0, pageCount = { 5 })
     val tabs = listOf("Overview", "About", "Posts", "Comments", "Gilded")
-    var offset by remember { mutableFloatStateOf(0f) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = { TopBar(drawerState) },
         modifier = modifier,
         bottomBar = {
-            BottomBar(selected = remember { mutableIntStateOf(0) })
+            TabBar(selected = selected)
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             ProfileInfo()
-            ScrollableTabRow(
+            SecondaryScrollableTabRow(
                 selectedTabIndex = currentTab.currentPage,
                 modifier = Modifier.fillMaxWidth(),
                 edgePadding = 0.dp

@@ -7,6 +7,7 @@ package com.sofamaniac.reboost.ui
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,16 +17,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
-import com.sofamaniac.reboost.reddit.Flair
-import com.sofamaniac.reboost.reddit.LinkFlairRichtext
+import coil3.compose.AsyncImage
+import com.sofamaniac.reboost.domain.model.Flair
+import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtext
+import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtextEmoji
+import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtextText
 
 
 @Composable
 fun FlairRichtext(richText: List<LinkFlairRichtext>) {
     for (i in richText) {
-        i.View()
+        when (i) {
+            is LinkFlairRichtextText -> {
+                Text(i.text, style = MaterialTheme.typography.labelSmall)
+            }
+
+            is LinkFlairRichtextEmoji -> {
+                AsyncImage(
+                    model = i.url,
+                    contentDescription = i.emoji,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.height(16.dp)
+                )
+            }
+        }
     }
 }
 

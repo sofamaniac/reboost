@@ -16,23 +16,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
-import com.sofamaniac.reboost.reddit.Post
-import com.sofamaniac.reboost.reddit.post.MediaMetadata
+import com.sofamaniac.reboost.data.remote.dto.post.MediaMetadata
+import com.sofamaniac.reboost.domain.model.PostData
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.lang.Float.max
 
 //@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun PostImage(post: Post, modifier: Modifier = Modifier) {
+fun PostImage(post: PostData, modifier: Modifier = Modifier) {
     Log.d("PostImage", "Rendering image")
-    if (!post.data.preview.images.isEmpty()) {
+    if (!post.preview.images.isEmpty()) {
         FromMetadata(post, modifier)
     } else {
-        val context = LocalContext.current
-        val url = post.data.url
+        LocalContext.current
+        val url = post.url
         AsyncImage(
             model = url,
-            contentDescription = post.data.title,
+            contentDescription = post.title,
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
@@ -46,7 +46,7 @@ fun PostImage(post: Post, modifier: Modifier = Modifier) {
 //                .wrapContentHeight(),
 //            contentScale = ContentScale.Fit,
 //        ) {
-//            val thumbnailURL = post.data.thumbnail.uri
+//            val thumbnailURL = post.thumbnail.uri
 //            if (thumbnailURL != null) {
 //                it.thumbnail(Glide.with(context).load(thumbnailURL))
 //            }
@@ -58,18 +58,18 @@ fun PostImage(post: Post, modifier: Modifier = Modifier) {
 
 //@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val images = post.data.preview
+fun FromMetadata(post: PostData, modifier: Modifier = Modifier) {
+    LocalContext.current
+    val images = post.preview
     val image = images.images[0].source
     val url = image.url
     val x = image.width
     val y = max(image.height.toFloat(), 1.0.toFloat())
-    val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()?.toUrl()
+    post.thumbnail.uri.toHttpUrlOrNull()?.toUrl()
     Log.d("ImageFromMetadata", "Rendering image from metadata $x x $y ($url)")
     AsyncImage(
         model = url.toString(),
-        contentDescription = post.data.title,
+        contentDescription = post.title,
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(x.toFloat() / y),
@@ -77,7 +77,7 @@ fun FromMetadata(post: Post, modifier: Modifier = Modifier) {
     )
 //    GlideImage(
 //        model = url,
-//        contentDescription = post.data.title,
+//        contentDescription = post.title,
 //        modifier = Modifier
 //            .fillMaxWidth()
 //            .aspectRatio(x.toFloat() / y.toFloat()),
@@ -120,8 +120,8 @@ fun ImageView(metadata: MediaMetadata.Gif, modifier: Modifier = Modifier) {
     val url = metadata.s!!.gifUrl.toString()
     val ratio = metadata.s.width.toFloat() / metadata.s.height.toFloat()
     // TODO choose the proper one based on resolution
-    val previewUrl = metadata.preview[0].url.toString()
-    val context = LocalContext.current
+    metadata.preview[0].url.toString()
+    LocalContext.current
     Log.d("ImageView", "Gif: ratio $ratio")
     AsyncImage(
         model = url,

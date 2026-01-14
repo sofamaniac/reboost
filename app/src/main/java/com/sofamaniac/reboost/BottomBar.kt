@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BottomBar(
-    selected: MutableIntState,
+    selected: Int,
     modifier: Modifier = Modifier
 ) {
     val tabs = listOf(
@@ -55,7 +55,7 @@ fun BottomBar(
 @Composable
 private fun TabButton(
     index: Int,
-    selected: MutableIntState,
+    selected: Int,
     icon: ImageVector,
     route: Any,
     description: String,
@@ -64,7 +64,6 @@ private fun TabButton(
     val navController = LocalNavController.current!!
     IconButton(
         onClick = {
-            selected.intValue = index
             navController.navigate(route) {
                 popUpTo(navController.graph.startDestinationId) {
                     saveState = true
@@ -75,7 +74,7 @@ private fun TabButton(
         Icon(
             imageVector = icon,
             contentDescription = description,
-            tint = if (selected.intValue == index) MaterialTheme.colorScheme.primary else Color.Gray
+            tint = if (selected == index) MaterialTheme.colorScheme.primary else Color.Gray
         )
     }
 }

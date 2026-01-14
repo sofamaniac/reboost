@@ -20,12 +20,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sofamaniac.reboost.reddit.Post
+import com.sofamaniac.reboost.domain.model.PostData
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PostVideo(post: Post, modifier: Modifier = Modifier) {
-    val media = post.data.media.media
+fun PostVideo(post: PostData, modifier: Modifier = Modifier) {
+    val media = post.media.media
     if (media != null && media.reddit_video != null) {
         val context = LocalContext.current
         val mediaItem = MediaItem.fromUri(media.reddit_video.fallback_url?.toString() ?: "")
@@ -39,7 +39,7 @@ fun PostVideo(post: Post, modifier: Modifier = Modifier) {
                 prepare()
             }
         }
-        Log.d("PostVideo", "${post.data}")
+        Log.d("PostVideo", "${post}")
 
         // Manage lifecycle events
         DisposableEffect(Unit) {
@@ -48,7 +48,7 @@ fun PostVideo(post: Post, modifier: Modifier = Modifier) {
             }
         }
         Box {
-            Text(text = post.data.url.toString())
+            Text(text = post.url.toString())
             AndroidView(
                 factory = { ctx ->
                     PlayerView(ctx).apply {

@@ -10,7 +10,7 @@ import java.net.URI
 
 @Serializable
 data class Thumbnail(
-    @Contextual val uri: URI,
+    val uri: String,
     val width: Int,
     val height: Int
 )

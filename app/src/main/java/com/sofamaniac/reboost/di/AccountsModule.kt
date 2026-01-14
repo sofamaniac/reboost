@@ -1,8 +1,9 @@
 package com.sofamaniac.reboost.di
 
 import android.content.Context
-import com.sofamaniac.reboost.accounts.AccountsRepository
-import com.sofamaniac.reboost.accounts.AccountsRepositoryImpl
+import com.sofamaniac.reboost.data.repository.AccountsRepository
+import com.sofamaniac.reboost.data.repository.AccountsRepositoryImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,9 +17,21 @@ object AccountsModule {
 
     @Provides
     @Singleton
-    fun provideAccountsRepository(
+    fun providesAccountsRepository(
         @ApplicationContext context: Context
-    ): AccountsRepository {
+    ): AccountsRepositoryImpl {
         return AccountsRepositoryImpl(context)
+
     }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AccountsModuleAbstract {
+
+    @Binds
+    @Singleton
+    abstract fun bindsAccountsRepository(
+        accountsRepositoryImpl: AccountsRepositoryImpl
+    ): AccountsRepository
 }

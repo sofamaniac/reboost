@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
-import com.sofamaniac.reboost.reddit.subreddit.SubredditIcon
-import com.sofamaniac.reboost.reddit.subreddit.SubredditName
+import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditIcon
+import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
 
 //@OptIn(ExperimentalGlideComposeApi::class)
 @Composable

@@ -6,14 +6,14 @@ package com.sofamaniac.reboost.ui.subredditList
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.sofamaniac.reboost.reddit.PagedResponse
-import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
+import com.sofamaniac.reboost.domain.model.PagedResponse
 
 class Source(
     private val repository: Repository
 ) : PagingSource<String, Subreddit>() {
 
-    override fun getRefreshKey(state: PagingState<String, Subreddit>): String? {
+    override fun getRefreshKey(state: PagingState<String, Subreddit>): String {
         return ""
     }
 

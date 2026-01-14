@@ -27,11 +27,10 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.ProfileRoute
-import com.sofamaniac.reboost.reddit.Post
-import com.sofamaniac.reboost.reddit.post.Kind
+import com.sofamaniac.reboost.domain.model.Kind
+import com.sofamaniac.reboost.domain.model.PostData
 import com.sofamaniac.reboost.ui.formatElapsedTimeLocalized
 import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 
@@ -39,8 +38,7 @@ import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 //@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostHeader(
-    post: Post,
-    selected: MutableIntState,
+    post: PostData,
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
 ) {
@@ -53,13 +51,13 @@ fun PostHeader(
     ) {
         if (showSubredditIcon) {
             SubredditIcon(
-                post.data.subreddit.name,
-                post.data.subredditDetails?.icon,
+                post.subreddit.name,
+                post.subredditDetails?.icon,
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
                     .clickable(onClick = {
-                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.data.subreddit.name.name))
+                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.subreddit.name.name))
                     })
             )
         }
@@ -69,11 +67,10 @@ fun PostHeader(
                     tag = "Subreddit",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.data.subreddit.name.name))
-                        selected.intValue = 2
+                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.subreddit.name.name))
                     })
             ) {
-                append(post.data.subreddit.name.name)
+                append(post.subreddit.name.name)
             }
             append(" · ")
             withLink(
@@ -81,18 +78,17 @@ fun PostHeader(
                     tag = "User",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(ProfileRoute(post.data.author.username))
-                        selected.intValue = 5
+                        navController.navigate(ProfileRoute(post.author.username))
                     })
             ) {
-                append(post.data.author.username)
+                append(post.author.username)
             }
-            if (!post.data.domain.contains("reddit") && !post.data.domain.endsWith("redd.it") && post.data.kind != Kind.Self) {
+            if (!post.domain.contains("reddit") && !post.domain.endsWith("redd.it") && post.kind != Kind.Self) {
                 append(" · ")
-                append(post.data.domain)
+                append(post.domain)
             }
             append(" · ")
-            append(formatElapsedTimeLocalized(post.data.createdAt))
+            append(formatElapsedTimeLocalized(post.createdAt))
         }
         Text(text, style = MaterialTheme.typography.bodySmall)
         // TODO: take last edit into account

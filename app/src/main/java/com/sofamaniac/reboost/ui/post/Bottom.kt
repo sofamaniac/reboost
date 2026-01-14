@@ -5,6 +5,7 @@
 package com.sofamaniac.reboost.ui.post
 
 import android.util.Log
+import androidx.activity.compose.ReportDrawn
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,27 +37,26 @@ import androidx.compose.ui.platform.LocalUriHandler
 import com.sofamaniac.reboost.BuildConfig
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.PostRoute
-import com.sofamaniac.reboost.reddit.Post
-import com.sofamaniac.reboost.reddit.RedditAPI
+import com.sofamaniac.reboost.data.remote.api.RedditAPI
+import com.sofamaniac.reboost.data.remote.api.RedditAPIService
+import com.sofamaniac.reboost.domain.model.PostData
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
-private fun UpButton(post: Post) {
-    val reddit = RedditAPI.service
+private fun UpButton(post: PostData, reddit: RedditAPIService) {
     val scope = rememberCoroutineScope()
-    val likes = remember { mutableStateOf(post.data.relationship.liked) }
+    val likes = remember { mutableStateOf(post.relationship.liked) }
     val buttonColor = animateColorAsState(
         targetValue = if (likes.value == true) Color.Red else Color.Gray,
         label = "button color"
     )
     IconButton(onClick = {
         if (likes.value == true) {
-            scope.launch { reddit.vote(post.data.name, 0) }
+            scope.launch { reddit.vote(post.name, 0) }
             likes.value = null
         } else {
-            scope.launch { reddit.vote(post.data.name, 1) }
+            scope.launch { reddit.vote(post.name, 1) }
             likes.value = true
         }
     }) {
@@ -65,21 +65,19 @@ private fun UpButton(post: Post) {
 }
 
 @Composable
-private fun DownButton(post: Post) {
-    LocalContext.current
-    val reddit = RedditAPI.service
+private fun DownButton(post: PostData, reddit: RedditAPIService) {
     val scope = rememberCoroutineScope()
-    var likes by remember { mutableStateOf(post.data.relationship.liked) }
+    var likes by remember { mutableStateOf(post.relationship.liked) }
     val buttonColor = animateColorAsState(
         targetValue = if (likes == false) Color.Blue else Color.Gray,
         label = "button color"
     )
     IconButton(onClick = {
         if (likes == false) {
-            scope.launch { reddit.vote(post.data.name, 0) }
+            scope.launch { reddit.vote(post.name, 0) }
             likes = null
         } else {
-            scope.launch { reddit.vote(post.data.name, 1) }
+            scope.launch { reddit.vote(post.name, 1) }
             likes = false
         }
     }) {
@@ -88,20 +86,18 @@ private fun DownButton(post: Post) {
 }
 
 @Composable
-private fun SavedButton(post: Post) {
-    LocalContext.current
-    val reddit = RedditAPI.service
+private fun SavedButton(post: PostData, reddit: RedditAPIService) {
     val scope = rememberCoroutineScope()
-    var saved by remember { mutableStateOf(post.data.relationship.saved) }
+    var saved by remember { mutableStateOf(post.relationship.saved) }
     val buttonColor = animateColorAsState(
-        targetValue = if (saved == true) Color.Yellow else Color.Gray,
+        targetValue = if (saved) Color.Yellow else Color.Gray,
         label = "button color"
     )
     IconButton(onClick = {
         if (saved) {
-            scope.launch { reddit.unsave(post.data.name) }
+            scope.launch { reddit.unsave(post.name) }
         } else {
-            scope.launch { reddit.save(post.data.name) }
+            scope.launch { reddit.save(post.name) }
         }
         saved = !saved
     }) {
@@ -114,20 +110,23 @@ private fun SavedButton(post: Post) {
 }
 
 @Composable
-fun BottomRow(post: Post, modifier: Modifier = Modifier) {
+fun BottomRow(post: PostData, modifier: Modifier = Modifier) {
     val navController = LocalNavController.current!!
     val uriHandler = LocalUriHandler.current
+    val service = RedditAPI()
+    service.init(LocalContext.current)
+    val reddit = service.service
     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-        UpButton(post)
-        DownButton(post)
-        SavedButton(post)
+        UpButton(post, reddit)
+        DownButton(post, reddit)
+        SavedButton(post, reddit)
         IconButton(onClick = {
-            navController.navigate(PostRoute(post.data.permalink))
+            navController.navigate(PostRoute(post.permalink))
         }) {
             Icon(Icons.AutoMirrored.Outlined.Chat, "comments")
         }
         IconButton(onClick = {
-            uriHandler.openUri(post.data.url.toString())
+            uriHandler.openUri(post.url.toString())
         }) {
             Icon(Icons.AutoMirrored.Outlined.ExitToApp, "open in app")
         }
@@ -136,7 +135,7 @@ fun BottomRow(post: Post, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PostOptions(post: Post, modifier: Modifier = Modifier) {
+private fun PostOptions(post: PostData, modifier: Modifier = Modifier) {
     var showOptions by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { showOptions = true }) {

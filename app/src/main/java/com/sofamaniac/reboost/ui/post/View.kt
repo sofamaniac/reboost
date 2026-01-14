@@ -38,21 +38,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-//import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-//import com.bumptech.glide.integration.compose.GlideImage
 import com.sofamaniac.reboost.LocalNavController
-import com.sofamaniac.reboost.reddit.Post
-import com.sofamaniac.reboost.reddit.post.Kind
-import com.sofamaniac.reboost.reddit.post.MediaMetadata
+import com.sofamaniac.reboost.data.remote.dto.post.MediaMetadata
+import com.sofamaniac.reboost.domain.model.Kind
+import com.sofamaniac.reboost.domain.model.PostData
 import com.sofamaniac.reboost.ui.Flair
 import com.sofamaniac.reboost.ui.SimpleMarkdown
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 
-//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
-    when (post.data.kind) {
+internal fun PostBody(post: PostData, modifier: Modifier = Modifier) {
+    when (post.kind) {
         Kind.Image -> {
             PostImage(post, Modifier.fillMaxWidth())
         }
@@ -70,7 +67,7 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
         }
 
         else -> {
-            val selftext = post.data.selftext.html()
+            val selftext = post.selftext.html()
             if (selftext.isNotBlank()) {
                 SimpleMarkdown(
                     markdown = selftext,
@@ -82,13 +79,11 @@ internal fun PostBody(post: Post, modifier: Modifier = Modifier) {
     }
 }
 
-//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun PostGallery(post: Post, modifier: Modifier = Modifier) {
-    val current = rememberPagerState(initialPage = 0, pageCount = { post.data.galleryData.size })
-    val minRatio = post.data.media.mediaMetadata.map { metadata ->
-        val data = metadata.value
-        when (data) {
+fun PostGallery(post: PostData, modifier: Modifier = Modifier) {
+    val current = rememberPagerState(initialPage = 0, pageCount = { post.galleryData.size })
+    val minRatio = post.media.mediaMetadata.map { metadata ->
+        when (val data = metadata.value) {
             is MediaMetadata.Image -> data.s!!.ratio
             is MediaMetadata.Gif -> data.s!!.ratio
             else -> 1f
@@ -101,8 +96,8 @@ fun PostGallery(post: Post, modifier: Modifier = Modifier) {
         contentAlignment = Alignment.TopEnd
     ) {
         HorizontalPager(state = current, modifier = Modifier.fillMaxSize()) { page ->
-            val mediaId = post.data.galleryData[page].mediaId
-            val metadata: MediaMetadata? = post.data.media.mediaMetadata[mediaId]
+            val mediaId = post.galleryData[page].mediaId
+            val metadata: MediaMetadata? = post.media.mediaMetadata[mediaId]
             if (metadata != null) {
                 when (metadata) {
                     is MediaMetadata.Image -> ImageView(metadata)
@@ -114,21 +109,20 @@ fun PostGallery(post: Post, modifier: Modifier = Modifier) {
             }
         }
         Text(
-            "${current.currentPage + 1}/${post.data.galleryData.size}",
+            "${current.currentPage + 1}/${post.galleryData.size}",
             modifier = Modifier.background(Color.Black.copy(alpha = 0.6f))
         )
     }
 }
 
 
-//@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PostInfo(
-    post: Post,
+    post: PostData,
     modifier: Modifier = Modifier,
     enablePreview: Boolean = true,
 ) {
-    val hasThumbnail = enablePreview && post.data.thumbnail.uri.toHttpUrlOrNull() != null
+    val hasThumbnail = enablePreview && post.thumbnail.uri.toHttpUrlOrNull() != null
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -144,53 +138,40 @@ fun PostInfo(
             val width = if (hasThumbnail) 0.8f else 1f
             val titleModifier = Modifier.fillMaxWidth(fraction = width)
             Text(
-                post.data.title,
+                post.title,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = titleModifier.fillMaxWidth(),
                 textAlign = TextAlign.Start,
             )
             // TODO make clickable
-            Flair(post.data.linkFlair)
+            Flair(post.linkFlair)
             Text(post.scoreString(), style = MaterialTheme.typography.bodyMedium)
         }
         if (hasThumbnail) {
-            val thumbnailURL = post.data.thumbnail.uri.toHttpUrlOrNull()
+            val thumbnailURL = post.thumbnail.uri.toHttpUrlOrNull()
             val uriHandler = LocalUriHandler.current
             Log.d("PostInfo", "Rendering thumbnail $thumbnailURL")
             AsyncImage(
                 model = thumbnailURL,
-                contentDescription = post.data.title,
+                contentDescription = post.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.2f)
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable(onClick = {
-                        uriHandler.openUri(post.data.url.toString())
+                        uriHandler.openUri(post.url.toString())
                     }),
             )
-//            GlideImage(
-//                model = thumbnailURL?.toUrl(),
-//                contentDescription = "Thumbnail",
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxWidth(fraction = 0.2f)
-//                    .aspectRatio(1f)
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .clickable(onClick = {
-//                        uriHandler.openUri(post.data.url.toString())
-//                    }),
-//
-//                )
         }
     }
 }
 
 @Composable
-fun Post.scoreString(): AnnotatedString {
+fun PostData.scoreString(): AnnotatedString {
     val scoreStyle =
         MaterialTheme.typography.titleMedium.toSpanStyle()
-    val score = data.score.score
+    val score = score.score
     return buildAnnotatedString {
         withStyle(style = scoreStyle) {
             if (score > 10_000) {
@@ -201,7 +182,7 @@ fun Post.scoreString(): AnnotatedString {
             }
         }
         append(" · ")
-        append("${data.numComments} comments")
+        append("${numComments} comments")
     }
 }
 
@@ -221,11 +202,11 @@ fun Post.scoreString(): AnnotatedString {
  */
 @Composable
 fun View(
-    post: Post,
-    selected: MutableIntState,
+    post: PostData,
     modifier: Modifier = Modifier,
     showSubredditIcon: Boolean = true,
     clickable: Boolean = true,
+    visitPost: (PostData) -> Unit = {},
     body: @Composable () -> Unit,
 ) {
     // We do not apply the padding on the column, but on each of its children except [body]
@@ -236,18 +217,18 @@ fun View(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = clickable, onClick = {
-                navController.navigate(com.sofamaniac.reboost.PostRoute(post.data.permalink))
+                visitPost(post)
+                navController.navigate(com.sofamaniac.reboost.PostRoute(post.permalink))
             }),
         verticalArrangement = Arrangement.spacedBy(4.dp) // Space between title, content, buttons
     ) {
         PostHeader(
             post,
-            selected,
             showSubredditIcon = showSubredditIcon,
             modifier = modifier
         )
         val enablePreview =
-            post.data.thumbnail.uri.toString().isNotEmpty() && post.data.kind == Kind.Link
+            post.thumbnail.uri.toString().isNotEmpty() && post.kind == Kind.Link
         PostInfo(
             post,
             modifier = modifier,

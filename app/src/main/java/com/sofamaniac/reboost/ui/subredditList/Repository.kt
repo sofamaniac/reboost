@@ -5,11 +5,11 @@
 package com.sofamaniac.reboost.ui.subredditList
 
 import android.util.Log
-import com.sofamaniac.reboost.reddit.Identity
-import com.sofamaniac.reboost.reddit.Listing
-import com.sofamaniac.reboost.reddit.PagedResponse
-import com.sofamaniac.reboost.reddit.RedditAPIService
-import com.sofamaniac.reboost.reddit.Subreddit
+import com.sofamaniac.reboost.data.remote.api.Identity
+import com.sofamaniac.reboost.data.remote.dto.Thing.Listing
+import com.sofamaniac.reboost.domain.model.PagedResponse
+import com.sofamaniac.reboost.data.remote.api.RedditAPIService
+import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
 import retrofit2.Response
 
 class Repository(

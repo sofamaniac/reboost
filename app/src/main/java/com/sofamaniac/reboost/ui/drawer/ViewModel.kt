@@ -8,19 +8,18 @@
 
 package com.sofamaniac.reboost.ui.drawer
 
-import android.app.Application
 import android.content.Intent
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sofamaniac.reboost.BuildConfig
-import com.sofamaniac.reboost.accounts.AccountsRepository
-import com.sofamaniac.reboost.accounts.AccountsRepositoryImpl
-import com.sofamaniac.reboost.accounts.RedditAccount
-import com.sofamaniac.reboost.auth.AuthConfig
-import com.sofamaniac.reboost.auth.BasicAuthClient
-import com.sofamaniac.reboost.auth.Scopes
-import com.sofamaniac.reboost.auth.createAuthorizationRequest
+import com.sofamaniac.reboost.data.repository.AccountsRepository
+import com.sofamaniac.reboost.domain.model.RedditAccount
+import com.sofamaniac.reboost.data.remote.api.RedditAPIService
+import com.sofamaniac.reboost.data.remote.api.auth.AuthConfig
+import com.sofamaniac.reboost.data.remote.api.auth.BasicAuthClient
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,24 +37,21 @@ sealed class LoginState {
     data class Error(val message: String) : LoginState()
 }
 
-class DrawerViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class DrawerViewModel @Inject constructor(
+    private val authService: AuthorizationService,
+    private val accountsRepository: AccountsRepository,
+    private val authConfig: AuthConfig,
+    private val redditApi: RedditAPIService,
+) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
-    private var authService: AuthorizationService = AuthorizationService(application)
-    private var accountsRepository: AccountsRepository = AccountsRepositoryImpl(application)
 
     val accountsList = accountsRepository.accounts
     val activeAccount = accountsRepository.activeAccount
 
-    val serviceConfig = AuthConfig(
-        authorizationEndpoint = "https://www.reddit.com/api/v1/authorize",
-        tokenEndpoint = "https://www.reddit.com/api/v1/access_token",
-        redirectUri = "com.sofamaniac.crabir://callback",
-        clientId = BuildConfig.REDDIT_CLIENT_ID,
-        /** Add all available scopes */
-        scopes = enumValues<Scopes>().map { it.name.lowercase() }
-    )
+    val serviceConfig = AuthConfig()
 
     fun setActiveAccount(accountId: Int) {
         viewModelScope.launch {
@@ -64,7 +60,7 @@ class DrawerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun createAuthIntent(): Intent {
-        val authRequest = createAuthorizationRequest(serviceConfig)
+        val authRequest = serviceConfig.createAuthorizationRequest()
         return authService.getAuthorizationRequestIntent(authRequest)
     }
 

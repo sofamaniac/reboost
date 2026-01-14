@@ -8,25 +8,32 @@
 
 package com.sofamaniac.reboost.ui.subreddit
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import com.sofamaniac.reboost.accounts.RedditAccount
-import com.sofamaniac.reboost.reddit.post.PostRepository
-import com.sofamaniac.reboost.reddit.post.PostsSource
-import com.sofamaniac.reboost.reddit.post.Sort
-import com.sofamaniac.reboost.reddit.post.Timeframe
-import com.sofamaniac.reboost.reddit.subreddit.HomeRepository
+import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
+import com.sofamaniac.reboost.data.local.entities.toEntity
+import com.sofamaniac.reboost.domain.model.RedditAccount
+import com.sofamaniac.reboost.domain.repository.feed.PostRepository
+import com.sofamaniac.reboost.domain.repository.feed.PostsSource
+import com.sofamaniac.reboost.data.remote.dto.post.Sort
+import com.sofamaniac.reboost.data.remote.dto.Timeframe
+import com.sofamaniac.reboost.domain.model.PostData
+import com.sofamaniac.reboost.domain.repository.feed.HomeRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 
-class PostFeedViewModel(private val repository: PostRepository) : ViewModel() {
+abstract class PostFeedViewModel(private val repository: PostRepository, private val visitedPostsDao: VisitedPostsDao) : ViewModel() {
     data class FeedParams(
         val account: RedditAccount,
         val sort: Sort,
@@ -57,19 +64,16 @@ class PostFeedViewModel(private val repository: PostRepository) : ViewModel() {
         _params.update {
             if (it.sort == sort && it.timeframe == timeframe) it
             else {
-                repository.updateSort(sort = sort, timeframe = timeframe)
+                postsSource?.setSort(sort, timeframe)
                 it.copy(sort = sort, timeframe = timeframe)
             }
         }
     }
-}
 
-class HomeViewModelFactory : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(PostFeedViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return PostFeedViewModel(HomeRepository()) as T
+    fun visitPost(post: PostData) {
+        viewModelScope.launch(Dispatchers.IO) {
+            visitedPostsDao.insert(post.toEntity())
+            Log.d("PostFeedViewModel", "visitPost: Post visited (${post.id.id})")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

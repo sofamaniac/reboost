@@ -74,6 +74,7 @@ object LicensesRoute : Route {
 }
 
 interface Route {
+
     val route: String
     val title: String
 }
