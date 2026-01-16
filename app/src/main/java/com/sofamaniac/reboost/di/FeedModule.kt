@@ -5,7 +5,6 @@ import com.sofamaniac.reboost.data.repository.AccountsRepository
 import com.sofamaniac.reboost.domain.repository.feed.HomeRepository
 import com.sofamaniac.reboost.domain.repository.feed.SavedRepository
 import com.sofamaniac.reboost.domain.repository.feed.SubredditPostsRepository
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

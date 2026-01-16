@@ -4,13 +4,12 @@
 
 package com.sofamaniac.reboost.domain.repository.feed
 
-import com.sofamaniac.reboost.domain.model.PagedResponse
-import com.sofamaniac.reboost.data.remote.dto.Thing.Post
-import com.sofamaniac.reboost.data.remote.api.RedditAPI
 import com.sofamaniac.reboost.data.remote.api.RedditAPIService
-import com.sofamaniac.reboost.data.remote.dto.post.Sort
+import com.sofamaniac.reboost.data.remote.dto.Thing.Post
 import com.sofamaniac.reboost.data.remote.dto.Timeframe
+import com.sofamaniac.reboost.data.remote.dto.post.Sort
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
+import com.sofamaniac.reboost.domain.model.PagedResponse
 import jakarta.inject.Inject
 
 class SubredditPostsRepository @Inject constructor(

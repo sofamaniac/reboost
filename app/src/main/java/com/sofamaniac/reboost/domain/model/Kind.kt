@@ -30,9 +30,19 @@ fun getKind(post: PostDataFlat): Kind {
         "rich:video", "hosted:video" -> Kind.Video
         "link" -> Kind.Link
         else -> {
-            Log.d("getKind", "Unknown post hint: $post")
+            if (post.url.startsWith("https://www.reddit.com/gallery")) {
+                return Kind.Gallery
+            } else if (isImageUrl(post.url)) {
+                return Kind.Image
+            }
+            Log.d("getKind", "Unknown post hint: ${post.postHint}")
             Kind.Self
         }
     }
 
+}
+
+fun isImageUrl(url: String): Boolean {
+    val extensions = listOf("jpg", "png", "jpeg", "png", "svg", "gif")
+    return extensions.any { url.endsWith(it) }
 }

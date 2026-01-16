@@ -5,10 +5,10 @@
 package com.sofamaniac.reboost.data.remote.utils
 
 import com.sofamaniac.reboost.data.remote.api.CommentsResponse
+import com.sofamaniac.reboost.data.remote.dto.Thing
 import com.sofamaniac.reboost.data.remote.dto.Thing.Listing
 import com.sofamaniac.reboost.data.remote.dto.Thing.More
 import com.sofamaniac.reboost.data.remote.dto.Thing.Post
-import com.sofamaniac.reboost.data.remote.dto.Thing
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind

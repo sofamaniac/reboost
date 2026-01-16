@@ -8,23 +8,20 @@
 
 package com.sofamaniac.reboost.ui.subredditList
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,66 +33,29 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.sofamaniac.reboost.Tab
-import com.sofamaniac.reboost.data.remote.api.RedditAPI
-import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
 import com.sofamaniac.reboost.ui.subreddit.SubredditIcon
 import kotlinx.coroutines.launch
 
 
-class SubscriptionState : Tab, ViewModel() {
-    var currentSearch by mutableStateOf("")
-    var subreddits by mutableStateOf(listOf<Subreddit>())
-    var lazyListState by mutableStateOf(androidx.compose.foundation.lazy.LazyListState())
-    var after: String? by mutableStateOf("")
-
-    suspend fun load() {
-        val apiService = RedditAPI().service
-        while (after != null) {
-            val response = apiService.getSubreddits(after)
-            val subs: List<Subreddit>? = response.body()?.data?.children
-            subreddits = subreddits + (subs ?: emptyList())
-            after = response.body()?.data?.after
-            Log.d("SubredditState", "After: $after")
-        }
-
-    }
-
-    suspend fun refresh() {
-        after = ""
-        load()
-        Log.d("SubredditState", "Subreddits: $subreddits")
-    }
-
+@OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(
-        navController: NavController,
-        selected: MutableIntState,
-        modifier: Modifier
-    ) {
-        SubredditListViewer(this, navController)
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    override fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?) {
+    fun TopBar(drawerState: DrawerState, scrollBehavior: TopAppBarScrollBehavior?) {
         var expanded by remember { mutableStateOf(true) }
+        var currentSearch by remember { mutableStateOf("") }
         TopAppBar(scrollBehavior = scrollBehavior, title = {
             Row {
                 IconButton(onClick = { /*TODO*/ }) {
@@ -130,38 +90,36 @@ class SubscriptionState : Tab, ViewModel() {
             }
         })
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: NavController) {
+fun SubredditListViewer(
+    navController: NavController,
+    viewModel: SubscriptionViewModel = hiltViewModel()
+) {
     var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state, isRefreshing) {
-        isRefreshing = true
-        state.load()
-        isRefreshing = false
-        // TODO Room with subreddits info (icon, ...)
-    }
+    val subscriptions by viewModel.subscriptions.collectAsState()
 
-
-    val sortedSubs = state.subreddits.sortedBy { it.data.display_name.name.lowercase() }
+    val sortedSubs =
+        subscriptions?.sortedBy { it.data.display_name.name.lowercase() } ?: emptyList()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
 
     Scaffold(
-        topBar = {
-            state.TopBar(
-                drawerState = rememberDrawerState(DrawerValue.Closed),
-                scrollBehavior = scrollBehavior
-            )
-        }
+//        topBar = {
+//            TopBar(
+//                drawerState = rememberDrawerState(DrawerValue.Closed),
+//                scrollBehavior = scrollBehavior
+//            )
+//        }
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                scope.launch { state.refresh() }
+                scope.launch { viewModel.refresh() }
                 isRefreshing = false
             },
             modifier = Modifier.padding(innerPadding)
@@ -171,16 +129,20 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
                     .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                state = state.lazyListState,
+                state = listState
             ) {
                 items(count = sortedSubs.size) { index ->
                     sortedSubs[index].let { subs ->
-                        Row {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
                             SubredditIcon(
                                 subs.data.display_name,
                                 subs.data.icon,
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(32.dp)
                                     .clip(CircleShape)
                             )
                             Text(
@@ -193,7 +155,6 @@ fun SubredditListViewer(state: SubscriptionState = viewModel(), navController: N
                                     )
                                 })
                         }
-                        HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }

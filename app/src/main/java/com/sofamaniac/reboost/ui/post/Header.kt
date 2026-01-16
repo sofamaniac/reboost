@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.ProfileRoute
+import com.sofamaniac.reboost.SubredditRoute
 import com.sofamaniac.reboost.domain.model.Kind
 import com.sofamaniac.reboost.domain.model.PostData
 import com.sofamaniac.reboost.ui.formatElapsedTimeLocalized
@@ -57,7 +60,7 @@ fun PostHeader(
                     .size(24.dp)
                     .clip(CircleShape)
                     .clickable(onClick = {
-                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.subreddit.name.name))
+                        navController.navigate(SubredditRoute(post.subreddit.name.name))
                     })
             )
         }
@@ -67,7 +70,7 @@ fun PostHeader(
                     tag = "Subreddit",
                     styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
                     linkInteractionListener = {
-                        navController.navigate(com.sofamaniac.reboost.SubredditRoute(post.subreddit.name.name))
+                        navController.navigate(SubredditRoute(post.subreddit.name.name))
                     })
             ) {
                 append(post.subreddit.name.name)
@@ -91,6 +94,10 @@ fun PostHeader(
             append(formatElapsedTimeLocalized(post.createdAt))
         }
         Text(text, style = MaterialTheme.typography.bodySmall)
+        if (post.isCrosspost) Icon(
+            Icons.Outlined.Shuffle,
+            contentDescription = "Crosspost",
+        )
         // TODO: take last edit into account
     }
 }

@@ -4,9 +4,7 @@
 
 package com.sofamaniac.reboost.data.remote.dto.post
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import java.net.URL
 
 @Serializable
 data class PostImageSource(

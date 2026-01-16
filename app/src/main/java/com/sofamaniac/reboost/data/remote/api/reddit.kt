@@ -11,24 +11,24 @@ package com.sofamaniac.reboost.data.remote.api
 import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.sofamaniac.reboost.BuildConfig
-import com.sofamaniac.reboost.data.repository.AccountsRepositoryImpl
 import com.sofamaniac.reboost.data.remote.api.auth.BasicAuthClient
 import com.sofamaniac.reboost.data.remote.api.auth.RedditAuthApi
 import com.sofamaniac.reboost.data.remote.api.auth.RedditAuthenticator
+import com.sofamaniac.reboost.data.remote.dto.Thing
 import com.sofamaniac.reboost.data.remote.dto.Thing.Listing
 import com.sofamaniac.reboost.data.remote.dto.Thing.More
 import com.sofamaniac.reboost.data.remote.dto.Thing.Post
 import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
-import com.sofamaniac.reboost.data.remote.dto.Thing
 import com.sofamaniac.reboost.data.remote.dto.post.PostId
+import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
 import com.sofamaniac.reboost.data.remote.interceptors.ForceJsonInterceptor
 import com.sofamaniac.reboost.data.remote.interceptors.NetworkInterceptor
 import com.sofamaniac.reboost.data.remote.interceptors.RateLimitInterceptor
 import com.sofamaniac.reboost.data.remote.interceptors.loggingInterceptor
-import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
 import com.sofamaniac.reboost.data.remote.utils.CommentsResponseSerializer
 import com.sofamaniac.reboost.data.remote.utils.URISerializer
 import com.sofamaniac.reboost.data.remote.utils.URLSerializer
+import com.sofamaniac.reboost.data.repository.AccountsRepositoryImpl
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -43,9 +43,9 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.net.URI
 import java.net.URL
+import com.sofamaniac.reboost.data.remote.dto.Timeframe as PostTimeframe
 import com.sofamaniac.reboost.data.remote.dto.comment.Sort as CommentSort
 import com.sofamaniac.reboost.data.remote.dto.post.Sort as PostSort
-import com.sofamaniac.reboost.data.remote.dto.Timeframe as PostTimeframe
 
 private const val BASE_URL = "https://oauth.reddit.com/"
 

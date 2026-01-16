@@ -4,7 +4,6 @@
 
 package com.sofamaniac.reboost.ui
 
-import android.util.Log
 import kotlinx.datetime.Instant
 import java.time.Clock
 import java.time.Duration
@@ -16,7 +15,6 @@ fun formatElapsedTimeLocalized(
 ): String {
     val end = Clock.systemUTC().millis()
     val duration = Duration.ofMillis(kotlin.math.abs(end - creationDate.toEpochMilliseconds()))
-    Log.d("formatElapsedTimeLocalized", "${duration}, ${creationDate}, $end")
 
     return when {
         duration.toDays() >= 365 -> String.format(locale, "%dy", duration.toDays() / 365)

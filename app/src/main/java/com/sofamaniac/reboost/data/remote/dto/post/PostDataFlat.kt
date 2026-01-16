@@ -8,17 +8,7 @@
 
 package com.sofamaniac.reboost.data.remote.dto.post
 
-import com.sofamaniac.reboost.domain.model.AuthorInfo
-import com.sofamaniac.reboost.domain.model.Flair
 import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtext
-import com.sofamaniac.reboost.reddit.Thumbnail
-import com.sofamaniac.reboost.domain.model.MediaInfo
-import com.sofamaniac.reboost.domain.model.PostData
-import com.sofamaniac.reboost.domain.model.Relationship
-import com.sofamaniac.reboost.domain.model.Score
-import com.sofamaniac.reboost.domain.model.Selftext
-import com.sofamaniac.reboost.domain.model.SubredditInfo
-import com.sofamaniac.reboost.domain.model.getKind
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditDetails
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditId
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
@@ -26,7 +16,17 @@ import com.sofamaniac.reboost.data.remote.utils.FalseOrTimestampSerializer
 import com.sofamaniac.reboost.data.remote.utils.InstantAsFloatSerializer
 import com.sofamaniac.reboost.data.remote.utils.MediaMetadataSerializer
 import com.sofamaniac.reboost.data.remote.utils.TranscodedVideo
-import kotlinx.serialization.Contextual
+import com.sofamaniac.reboost.domain.model.AuthorInfo
+import com.sofamaniac.reboost.domain.model.Flair
+import com.sofamaniac.reboost.domain.model.Gallery
+import com.sofamaniac.reboost.domain.model.MediaInfo
+import com.sofamaniac.reboost.domain.model.PostData
+import com.sofamaniac.reboost.domain.model.Relationship
+import com.sofamaniac.reboost.domain.model.Score
+import com.sofamaniac.reboost.domain.model.Selftext
+import com.sofamaniac.reboost.domain.model.SubredditInfo
+import com.sofamaniac.reboost.domain.model.getKind
+import com.sofamaniac.reboost.reddit.Thumbnail
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -54,15 +54,17 @@ data class PostDataFlat(
 
     @SerialName("id") val id: PostId,
     @SerialName("name") val fullname: PostFullname,
-    @SerialName("url")  val url: String? = null,
+    @SerialName("url") val url: String,
     @SerialName("title") val title: String = "",
     @SerialName("suggested_sort") val suggestedSort: String? = null,
     @SerialName("num_comments") val numComments: Int = 0,
     @SerialName("over_18") val over18: Boolean = false,
-    @SerialName("permalink") val permalink: String = "",
+    @SerialName("permalink") val permalink: String,
     @SerialName("post_hint") val postHint: String? = null,
     @SerialName("pinned") val pinned: Boolean = false,
     @SerialName("preview") val preview: Preview? = null,
+    @SerialName("crosspost_parent_list") val crosspostParentList: List<PostDataFlat> = emptyList(),
+
 
 
     // ================================================ //
@@ -273,9 +275,14 @@ private fun PostDataFlat.toLinkFlair() = Flair(
 private fun PostDataFlat.toMediaInfo() = MediaInfo(
     media = media,
     mediaEmbed = mediaEmbed,
-    mediaMetadata = mediaMetadata,
     mediaOnly = isMediaOnly
 )
+
+private fun PostDataFlat.toGallery() = Gallery(
+    images = galleryData?.items ?: emptyList(),
+    mediaMetadata = mediaMetadata
+)
+
 
 private fun PostDataFlat.toRelationship() = Relationship(
     clicked = clicked,
@@ -291,9 +298,10 @@ object PostDataMapper : ObjectMappie<PostDataFlat, PostData>() {
 
         PostData::name fromProperty from::fullname
 
-        PostData::url fromValue (from.url ?: "")
+        PostData::url fromProperty from::url
         PostData::suggestedSort fromValue (from.suggestedSort ?: "")
-        PostData::preview fromValue (from.preview ?: Preview())
+        PostData::_preview fromProperty from::preview
+        PostData::crosspostParentList fromProperty from::crosspostParentList
 
         PostData::author fromValue from.toAuthorInfo()
         PostData::subreddit fromValue from.toSubredditInfo()
@@ -308,7 +316,7 @@ object PostDataMapper : ObjectMappie<PostDataFlat, PostData>() {
         PostData::createdAt fromProperty from::createdUtc
         PostData::edited fromValue Instant.fromEpochSeconds(from.edited ?: 0)
 
-        PostData::galleryData fromValue (from.galleryData?.items ?: emptyList())
+        PostData::gallery fromValue from.toGallery()
     }
 }
 
@@ -321,7 +329,6 @@ data class Media(
     val oembed: OEmbed? = null,
 )
 
-// FIXME: there is a field called cache_age that apparently can exceed Int.MAX_VALUE, making the serializer crash ?
 @Serializable
 data class OEmbed(
     @SerialName("provider_url") val providerUrl: String? = null,
@@ -336,23 +343,21 @@ data class OEmbed(
 
     @SerialName("thumbnail_width") val thumbnailWidth: Int = 0,
     @SerialName("thumbnail_height") val thumbnailHeight: Int = 0,
-    @SerialName("thumbnail_url")  val thumbnailUrl: String? = null,
-
-    @SerialName("cache_age") val cacheAge: Int = 0,
+    @SerialName("thumbnail_url") val thumbnailUrl: String? = null,
 )
 
 
 @Serializable
 data class RedditVideo(
     /** Use this url to get the video */
-     val fallback_url: String,
+    val fallback_url: String,
     val width: Int = 0,
     val height: Int = 0,
-     val scrubber_media_url: String,
-     val dash_url: String,
+    val scrubber_media_url: String,
+    val dash_url: String,
     /** Duration in seconds */
     val duration: Int,
-     val hls_url: String? = null,
+    val hls_url: String? = null,
     val is_gif: Boolean = false,
 )
 
@@ -393,10 +398,10 @@ sealed class MediaMetadata() {
 
 @Serializable
 data class MediaPreviewGifSource(
-    @SerialName("gif")  val gifUrl: String? = null,
+    @SerialName("gif") val gifUrl: String? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0,
-    @SerialName("mp4")  val mp4Url: String? = null,
+    @SerialName("mp4") val mp4Url: String? = null,
 ) {
     val ratio: Float
         get() = width.toFloat() / height.toFloat()
@@ -406,7 +411,7 @@ data class MediaPreviewGifSource(
 @Serializable
 data class MediaPreview(
     /** Url of the preview */
-    @SerialName("u")  val url: String? = null,
+    @SerialName("u") val url: String? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0
 ) {

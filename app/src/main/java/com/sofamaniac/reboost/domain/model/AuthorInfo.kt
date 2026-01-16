@@ -1,6 +1,5 @@
 package com.sofamaniac.reboost.domain.model
 
-import com.sofamaniac.reboost.domain.model.Flair
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -11,8 +11,6 @@ data class Selftext(
     private val selftext: String,
     private val selftextHtml: String
 ) {
-    fun html(): String {
-        //return StringEscapeUtils.unescapeHtml4(selftextHtml)
-        return selftextHtml
-    }
+    val markdown: String get() = selftext
+    val html: String get() = selftextHtml
 }

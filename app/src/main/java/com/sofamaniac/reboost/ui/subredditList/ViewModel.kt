@@ -4,39 +4,47 @@
 
 package com.sofamaniac.reboost.ui.subredditList
 
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.runtime.Composable
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
-import com.sofamaniac.reboost.data.remote.api.Identity
+import com.sofamaniac.reboost.data.remote.dto.Thing
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SubscriptionViewModel(repository: Repository) : ViewModel() {
-    private var state: LazyListState? = null
+@HiltViewModel
+class SubscriptionViewModel @Inject constructor(private val subscriptionsRepository: SubscriptionsRepository) :
+    ViewModel() {
+    private var _subscriptions: MutableStateFlow<List<Thing.Subreddit>?> = MutableStateFlow(null)
 
-    @Composable
-    fun rememberLazyListState(): LazyListState {
-        if (state == null) {
-            state = androidx.compose.foundation.lazy.rememberLazyListState()
+    val subscriptions: StateFlow<List<Thing.Subreddit>?> get() = _subscriptions.asStateFlow()
+    fun loadSubscriptions() {
+        viewModelScope.launch {
+            var after: String? = ""
+            _subscriptions.value = emptyList()
+            while (after != null) {
+                val response = subscriptionsRepository.getSubreddits(after)
+                after = response.data.lastOrNull()?.data?.name
+                _subscriptions.update {
+                    it?.plus(response.data) ?: response.data
+                }
+            }
+            Log.d(
+                "SubscriptionViewModel",
+                "loadSubscriptions: ${_subscriptions.value?.size} subreddits loaded"
+            )
         }
-        return state!!
     }
 
-    val data = Pager(
-        config = PagingConfig(pageSize = 100),
-        initialKey = "",
-        pagingSourceFactory = {
-            Source(repository)
-        }
-    ).flow.cachedIn(viewModelScope)
-    var user: Identity? = null
+    fun refresh() {
+        loadSubscriptions()
+    }
 
     init {
-        viewModelScope.launch {
-            user = repository.getUser()
-        }
+        loadSubscriptions()
     }
 }

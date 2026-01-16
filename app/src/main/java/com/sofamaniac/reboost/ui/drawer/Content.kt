@@ -30,8 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.sofamaniac.reboost.Home
 import com.sofamaniac.reboost.LicensesRoute
 import com.sofamaniac.reboost.LocalNavController
 import com.sofamaniac.reboost.domain.model.RedditAccount

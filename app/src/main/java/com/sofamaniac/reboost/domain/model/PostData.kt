@@ -1,16 +1,11 @@
 package com.sofamaniac.reboost.domain.model
 
-import com.sofamaniac.reboost.data.remote.dto.post.GalleryDataImage
 import com.sofamaniac.reboost.data.remote.dto.post.PostFullname
 import com.sofamaniac.reboost.data.remote.dto.post.PostId
 import com.sofamaniac.reboost.data.remote.dto.post.Preview
-import com.sofamaniac.reboost.domain.model.AuthorInfo
-import com.sofamaniac.reboost.domain.model.Flair
-import com.sofamaniac.reboost.reddit.Thumbnail
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditDetails
-import kotlinx.serialization.Contextual
+import com.sofamaniac.reboost.reddit.Thumbnail
 import kotlinx.serialization.Serializable
-import java.net.URL
 import kotlin.time.Instant
 
 @Serializable
@@ -24,7 +19,8 @@ data class PostData(
     val suggestedSort: String,
     val numComments: Int,
     val over18: Boolean,
-    val preview: Preview,
+    val _preview: Preview?,
+    val crosspostParentList: List<PostData>,
     val author: AuthorInfo,
     val subreddit: SubredditInfo,
     val subredditDetails: SubredditDetails?,
@@ -34,9 +30,26 @@ data class PostData(
     val kind: Kind,
     val linkFlair: Flair,
     val media: MediaInfo,
-    val galleryData: List<GalleryDataImage>,
+    val gallery: Gallery,
     //val status: Status
     val createdAt: Instant,
     val edited: Instant?,
     val relationship: Relationship,
-)
+) {
+    fun getPreview(): Preview? {
+        return _preview ?: crosspostParentList.firstOrNull()?.getPreview()
+    }
+
+    fun getGalleryData(): Gallery {
+        if (gallery.images.isNotEmpty()) return gallery
+        return crosspostParentList.firstOrNull()?.getGalleryData() ?: Gallery(
+            emptyList(),
+            emptyMap()
+        )
+    }
+
+    val isCrosspost: Boolean
+        get() {
+            return crosspostParentList.isNotEmpty()
+        }
+}

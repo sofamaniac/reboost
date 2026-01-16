@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,7 +25,6 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +34,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,8 +48,8 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.sofamaniac.reboost.data.remote.dto.post.Sort
 import com.sofamaniac.reboost.data.remote.dto.Timeframe
+import com.sofamaniac.reboost.data.remote.dto.post.Sort
 import com.sofamaniac.reboost.ui.post.PostBody
 import com.sofamaniac.reboost.ui.post.View
 import kotlinx.coroutines.launch
@@ -72,12 +69,7 @@ fun PostFeedViewer(
     showSubredditIcon: Boolean = true
 ) {
 
-//    LaunchedEffect(state.sort, state.timeframe) {
-//        state.updateSort(state.sort, state.timeframe)
-//    }
-    //val posts = state.data.collectAsLazyPagingItems()
     val posts = state.data.collectAsLazyPagingItems()
-    //val listState = remember { state.listState }
     val listState = rememberLazyListState()
     PullToRefreshBox(
         isRefreshing = posts.loadState.refresh == LoadState.Loading,
@@ -98,7 +90,6 @@ fun PostFeedViewer(
                     View(post,  showSubredditIcon = showSubredditIcon, visitPost = state::visitPost) {
                         PostBody(post)
                     }
-                    HorizontalDivider(thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
         }

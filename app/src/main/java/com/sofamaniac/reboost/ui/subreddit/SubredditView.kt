@@ -12,25 +12,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.sofamaniac.reboost.BottomBar
 import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditName
-import com.sofamaniac.reboost.domain.repository.feed.HomeRepository
 import com.sofamaniac.reboost.domain.repository.feed.SubredditPostsRepository
 import com.sofamaniac.reboost.ui.TabBar
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 
 
 @OptIn(ExperimentalMaterial3Api::class)

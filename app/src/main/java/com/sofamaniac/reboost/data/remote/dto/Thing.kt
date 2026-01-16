@@ -8,11 +8,11 @@
 
 package com.sofamaniac.reboost.data.remote.dto
 
-import com.sofamaniac.reboost.data.remote.dto.post.PostDataFlat
 import com.sofamaniac.reboost.data.remote.dto.comment.CommentData
-import com.sofamaniac.reboost.reddit.ListingData
+import com.sofamaniac.reboost.data.remote.dto.post.PostDataFlat
 import com.sofamaniac.reboost.data.remote.dto.subreddit.SubredditData
 import com.sofamaniac.reboost.data.remote.dto.subreddit.dummySubredditData
+import com.sofamaniac.reboost.reddit.ListingData
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

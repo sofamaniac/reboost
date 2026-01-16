@@ -5,7 +5,6 @@
 package com.sofamaniac.reboost.ui.post
 
 import android.util.Log
-import androidx.activity.compose.ReportDrawn
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

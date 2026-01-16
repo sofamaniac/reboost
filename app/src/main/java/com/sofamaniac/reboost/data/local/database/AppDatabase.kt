@@ -2,7 +2,6 @@ package com.sofamaniac.reboost.data.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import com.sofamaniac.reboost.data.local.dao.AccountsDao
 import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
 import com.sofamaniac.reboost.data.local.entities.RedditAccountEntity

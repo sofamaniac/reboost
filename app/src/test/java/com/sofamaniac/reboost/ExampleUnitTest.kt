@@ -4,11 +4,8 @@
 
 package com.sofamaniac.reboost
 
-import com.sofamaniac.reboost.data.remote.dto.post.MediaMetadata
-import kotlinx.serialization.json.Json
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).

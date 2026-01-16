@@ -1,11 +1,9 @@
 package com.sofamaniac.reboost.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.sofamaniac.reboost.data.remote.api.RedditAPI
 import com.sofamaniac.reboost.data.remote.api.RedditAPIService
 import com.sofamaniac.reboost.data.remote.api.auth.RedditAuthenticator
 import com.sofamaniac.reboost.data.remote.interceptors.ForceJsonInterceptor
-import com.sofamaniac.reboost.data.remote.interceptors.NetworkInterceptor
 import com.sofamaniac.reboost.data.remote.interceptors.RateLimitInterceptor
 import com.sofamaniac.reboost.data.remote.interceptors.loggingInterceptor
 import com.sofamaniac.reboost.data.remote.utils.URISerializer

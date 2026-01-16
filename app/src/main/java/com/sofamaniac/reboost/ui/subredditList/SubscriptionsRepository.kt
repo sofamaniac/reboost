@@ -6,13 +6,13 @@ package com.sofamaniac.reboost.ui.subredditList
 
 import android.util.Log
 import com.sofamaniac.reboost.data.remote.api.Identity
-import com.sofamaniac.reboost.data.remote.dto.Thing.Listing
-import com.sofamaniac.reboost.domain.model.PagedResponse
 import com.sofamaniac.reboost.data.remote.api.RedditAPIService
+import com.sofamaniac.reboost.data.remote.dto.Thing.Listing
 import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
+import com.sofamaniac.reboost.domain.model.PagedResponse
 import retrofit2.Response
 
-class Repository(
+class SubscriptionsRepository(
     private val apiService: RedditAPIService,
 ) {
     private suspend fun makeRequest(

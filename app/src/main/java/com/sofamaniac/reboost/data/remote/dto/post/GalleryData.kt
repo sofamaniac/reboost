@@ -14,4 +14,5 @@ data class GalleryData(val items: List<GalleryDataImage>)
 data class GalleryDataImage(
     @SerialName("media_id") val mediaId: String,
     @SerialName("id") val id: String,
+    @SerialName("caption") val caption: String? = null,
 )

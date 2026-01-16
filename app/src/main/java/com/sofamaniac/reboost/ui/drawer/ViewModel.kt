@@ -13,11 +13,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sofamaniac.reboost.BuildConfig
-import com.sofamaniac.reboost.data.repository.AccountsRepository
-import com.sofamaniac.reboost.domain.model.RedditAccount
 import com.sofamaniac.reboost.data.remote.api.RedditAPIService
 import com.sofamaniac.reboost.data.remote.api.auth.AuthConfig
 import com.sofamaniac.reboost.data.remote.api.auth.BasicAuthClient
+import com.sofamaniac.reboost.data.repository.AccountsRepository
+import com.sofamaniac.reboost.domain.model.RedditAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -18,7 +18,8 @@ import net.openid.appauth.AuthorizationService
 import net.openid.appauth.ClientAuthentication
 import okhttp3.Interceptor
 import okhttp3.Response
-import kotlin.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 class RedditAuthenticator @Inject constructor(

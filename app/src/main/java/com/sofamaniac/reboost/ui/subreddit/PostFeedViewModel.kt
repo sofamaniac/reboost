@@ -10,21 +10,18 @@ package com.sofamaniac.reboost.ui.subreddit
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
 import com.sofamaniac.reboost.data.local.entities.toEntity
+import com.sofamaniac.reboost.data.remote.dto.Timeframe
+import com.sofamaniac.reboost.data.remote.dto.post.Sort
+import com.sofamaniac.reboost.domain.model.PostData
 import com.sofamaniac.reboost.domain.model.RedditAccount
 import com.sofamaniac.reboost.domain.repository.feed.PostRepository
 import com.sofamaniac.reboost.domain.repository.feed.PostsSource
-import com.sofamaniac.reboost.data.remote.dto.post.Sort
-import com.sofamaniac.reboost.data.remote.dto.Timeframe
-import com.sofamaniac.reboost.domain.model.PostData
-import com.sofamaniac.reboost.domain.repository.feed.HomeRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

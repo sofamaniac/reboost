@@ -21,10 +21,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
-import com.sofamaniac.reboost.domain.model.Flair
 import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtext
 import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtextEmoji
 import com.sofamaniac.reboost.data.remote.dto.LinkFlairRichtextText
+import com.sofamaniac.reboost.domain.model.Flair
 
 
 @Composable
@@ -58,7 +58,6 @@ fun mapColor(color: String): Color {
             blue = color.substring(5, 7).toInt(16)
         )
     } else if (color.isNotEmpty()) {
-        Log.d("Flair", "named color: $color")
         return when (color) {
             "light" -> Color.White
             "dark" -> Color.DarkGray
@@ -66,7 +65,7 @@ fun mapColor(color: String): Color {
             else -> try {
                 Color(color.toColorInt())
             } catch (e: Exception) {
-                Log.e("Flair.mapColor", "Unknown color: $color")
+                Log.w("Flair.mapColor", "Unknown color: $color")
                 Color.Black
             }
         }

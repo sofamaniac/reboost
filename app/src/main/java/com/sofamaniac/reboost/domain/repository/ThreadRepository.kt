@@ -1,18 +1,12 @@
 package com.sofamaniac.reboost.domain.repository
 
-import android.util.Log
-import androidx.paging.PagingSource
-import androidx.paging.PagingSource.LoadParams
-import androidx.paging.PagingSource.LoadResult
-import androidx.paging.PagingState
+import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
+import com.sofamaniac.reboost.data.local.entities.toEntity
 import com.sofamaniac.reboost.data.remote.api.RedditAPIService
 import com.sofamaniac.reboost.data.remote.dto.Thing
 import com.sofamaniac.reboost.data.remote.dto.Timeframe
-import com.sofamaniac.reboost.data.remote.dto.post.PostDataMapper
 import com.sofamaniac.reboost.data.remote.dto.comment.Sort
-import com.sofamaniac.reboost.domain.model.PagedResponse
-import com.sofamaniac.reboost.domain.model.PostData
-import retrofit2.Response
+import com.sofamaniac.reboost.data.remote.dto.post.PostDataMapper
 
 interface ThreadRepository {
     suspend fun getComments(
@@ -27,7 +21,8 @@ interface ThreadRepository {
     fun refresh()
 }
 
-class ThreadRepositoryImpl(val api: RedditAPIService): ThreadRepository {
+class ThreadRepositoryImpl(val api: RedditAPIService, val visitedPostsDao: VisitedPostsDao) :
+    ThreadRepository {
     private var post: Thing.Post? = null
     private var comments: List<Thing> = emptyList()
     private var isRefreshing = false
@@ -42,7 +37,9 @@ class ThreadRepositoryImpl(val api: RedditAPIService): ThreadRepository {
             val body = response.body()
             if (body != null) {
                 post = body.post.data.children.firstOrNull()
+                val postDomain = PostDataMapper.map(post!!.data)
                 comments = body.comments.data.children
+                visitedPostsDao.insert(postDomain.toEntity())
             }
         }
         isRefreshing = false
@@ -79,3 +76,4 @@ class ThreadRepositoryImpl(val api: RedditAPIService): ThreadRepository {
         return isRefreshing
     }
 }
+

@@ -3,7 +3,6 @@ package com.sofamaniac.reboost.data.local.entities
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
 import com.sofamaniac.reboost.domain.model.RedditAccount
 import net.openid.appauth.AuthState
 

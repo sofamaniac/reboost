@@ -182,6 +182,15 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     // Render markdown
-    implementation("com.mikepenz:multiplatform-markdown-renderer-android:0.39.0")
-    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.39.0")
+//    implementation("com.mikepenz:multiplatform-markdown-renderer-android:0.39.0")
+//    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.39.0")
+    //implementation("com.github.jeziellago:compose-markdown:0.5.8")
+    implementation("org.jetbrains:markdown:0.7.3")
+
+    implementation("io.noties.markwon:core:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")
+    implementation("io.noties.markwon:image:4.6.2")
+    implementation("io.noties.markwon:image-coil:4.6.2")
+    implementation("io.noties.markwon:inline-parser:4.6.2")
+    implementation("io.noties.markwon:simple-ext:4.6.2")
 }

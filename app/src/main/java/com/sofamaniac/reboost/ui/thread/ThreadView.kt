@@ -15,7 +15,6 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.sofamaniac.reboost.ui.TabBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +26,7 @@ fun ThreadView(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     Scaffold(
         topBar = { TopBar(viewModel, scrollBehavior) },
-        bottomBar = { TabBar(selected) },
+        //bottomBar = { TabBar(selected) },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
         CommentListRoot(

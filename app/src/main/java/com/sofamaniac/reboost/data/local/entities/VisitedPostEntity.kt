@@ -1,7 +1,6 @@
 package com.sofamaniac.reboost.data.local.entities
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.sofamaniac.reboost.domain.model.PostData
 import kotlinx.serialization.json.Json

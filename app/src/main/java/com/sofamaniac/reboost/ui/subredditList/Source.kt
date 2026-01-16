@@ -10,7 +10,7 @@ import com.sofamaniac.reboost.data.remote.dto.Thing.Subreddit
 import com.sofamaniac.reboost.domain.model.PagedResponse
 
 class Source(
-    private val repository: Repository
+    private val subscriptionsRepository: SubscriptionsRepository
 ) : PagingSource<String, Subreddit>() {
 
     override fun getRefreshKey(state: PagingState<String, Subreddit>): String {
@@ -31,6 +31,6 @@ class Source(
     }
 
     private suspend fun getSubreddits(after: String): PagedResponse<Subreddit> {
-        return repository.getSubreddits(after)
+        return subscriptionsRepository.getSubreddits(after)
     }
 }

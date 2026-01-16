@@ -3,7 +3,6 @@ package com.sofamaniac.reboost.ui.thread
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.sofamaniac.reboost.PostRoute
 import com.sofamaniac.reboost.data.local.dao.VisitedPostsDao
@@ -18,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @HiltViewModel
